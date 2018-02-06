@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    void sendFrame();
+    void sendFrame(int code);
     ~MainWindow();
 
 private slots:

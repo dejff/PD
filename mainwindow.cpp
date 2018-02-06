@@ -12,8 +12,8 @@ MainWindow::MainWindow(QWidget *parent) :
     stopShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_S), this);   //ustawienie skrótu na zakończenie skanowania
     connect(startShortcut, SIGNAL(activated()),this, SLOT(on_start_cap_button_clicked()));  //połączenie skrtótu klawiszowego z przyciskiem "Zacznij przechwytywanie"
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
-    timer = new Timer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT, checkThreads());
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
 }
 
 MainWindow::~MainWindow()
