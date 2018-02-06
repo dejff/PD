@@ -8,13 +8,15 @@ PingThread::PingThread(QString ip)
 }
 
 PingThread::~PingThread(){
-
+    timer->stop();
 }
 
 
 void PingThread::run()
 {
-    ping();
+    timer = new QTimer(this);       //timer odmierzający czas pomiędzy kolejnymi pingami
+    connect(timer, SIGNAL(timeout()),this, SLOT(ping()));     //połączenie timera z funkcją
+    timer->start(5000);             //uruchomienie timera, z interwałem 5s
 }
 
 /**
@@ -62,8 +64,9 @@ void PingThread::ping()
 
     system(ping_char.data());
     //przechwytywanie pakietów
-    if(pcap_loop(handle,5,got_ping,NULL)<0){
+    if(pcap_dispatch(handle,5,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
         qDebug()<<"brak połączenia z kamerą";
+        quit();
     }
 
     pcap_close(handle);
