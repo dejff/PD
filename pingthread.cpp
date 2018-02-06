@@ -27,9 +27,9 @@ void PingThread::ping()
     bpf_u_int32 mask;		/* maska podsieci */
     bpf_u_int32 net;		/* The IP of our sniffing device */
 
+    //wysyłanie 5 pakietów ICMP na adres podany w interfejsie graficznym
     QString ping_exp = "ping "+ip+" -c 5";
     QByteArray ping_char = ping_exp.toUtf8();
-    system(ping_char.data());
 
     char *dev, errbuf[PCAP_ERRBUF_SIZE];
 
@@ -60,8 +60,11 @@ void PingThread::ping()
 //        return(4);
     }
 
+    system(ping_char.data());
     //przechwytywanie pakietów
-    pcap_loop(handle,5,got_ping,NULL);
+    if(pcap_loop(handle,5,got_ping,NULL)<0){
+        qDebug()<<"brak połączenia z kamerą";
+    }
 
     pcap_close(handle);
 

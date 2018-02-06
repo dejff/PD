@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QShortcut>
 #include "pingthread.h"
+#include "videothread.h"
+#include "opencvthread.h"
 
 namespace Ui {
 class MainWindow;
@@ -15,6 +17,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+    void sendFrame();
     ~MainWindow();
 
 private slots:
@@ -26,8 +29,8 @@ private:
     QShortcut *startShortcut;
     QShortcut *stopShortcut;
     PingThread *pingThread;
-//    CapThread *capThread;
-
+    VideoThread *videoThread;
+    OpencvThread *opencvThread;
 };
 
 #endif // MAINWINDOW_H

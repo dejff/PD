@@ -22,19 +22,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += /usr/local/
-LIBS += -L/usr/local/lib -lpcap
+INCLUDEPATH += /usr/local/include/opencv
+LIBS += -L/usr/local/lib -lpcap -lvlc -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lopencv_video -lopencv_videoio
 
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
     pingthread.cpp \
-    videothread.cpp
+    videothread.cpp \
+    opencvthread.cpp
 
 HEADERS += \
         mainwindow.h \
     pingthread.h \
-    videothread.h
+    videothread.h \
+    opencvthread.h
 
 FORMS += \
         mainwindow.ui

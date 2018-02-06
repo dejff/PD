@@ -1,7 +1,8 @@
 #ifndef VIDEOTHREAD_H
 #define VIDEOTHREAD_H
 #include <QThread>
-
+#include <vlc/libvlc.h>
+#include <vlc/vlc.h>
 
 class VideoThread: public QThread
 {
