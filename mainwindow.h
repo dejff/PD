@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QShortcut>
+#include <sys/socket.h>
 #include "pingthread.h"
 #include "videothread.h"
 #include "opencvthread.h"

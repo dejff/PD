@@ -3,6 +3,7 @@
 #include <QThread>
 #include <vlc/libvlc.h>
 #include <vlc/vlc.h>
+#include <vlc/libvlc_media.h>
 
 class VideoThread: public QThread
 {

@@ -18,6 +18,7 @@ void OpencvThread::run()
     QString ip = "rtsp://admin:admin@"+ip+":554";
     QByteArray byteArray = ip.toUtf8();
     cap.open(byteArray.data());
+//    cap.open(0);
     if(cap.isOpened()){
         cap.get(CAP_PROP_FRAME_WIDTH);
         cap.get(CAP_PROP_FRAME_HEIGHT);
