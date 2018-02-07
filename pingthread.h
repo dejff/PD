@@ -12,6 +12,7 @@ public:
     ~PingThread();
 
 private:
+    QTimer *timer;
     QString ip;
     static void got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 
