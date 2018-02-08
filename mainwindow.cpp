@@ -117,11 +117,11 @@ void MainWindow::checkThreads(){
             qDebug()<<"video nie działa";
             sendFrame(2);
             //błąd połączenia video (libavc)
-        }else{
+        }*/else{
             qDebug()<<"opencv nie działa";
             sendFrame(3);
             //błąd połączenia video (opencv)
-        }*/
+        }
         on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
     }
 
@@ -131,11 +131,11 @@ void MainWindow::checkThreads(){
  * @brief MainWindow::ping
  * Funkcja pingująca urządzenie znajdujące się pod adresem
  */
-void MainWindow::ping()
-{
+//void MainWindow::ping()
+//{
 //    qDebug()<<"poszedł ping";
 //    QString ping_exp = "ping "+ui->ip_addr->text()+" -c 5 >/dev/null 2>&1";   //wykonanie pinga bez wyświetlania informacji w terminalu
 //    QByteArray ping_char = ping_exp.toUtf8();               //przekonwertowania zmiennej typu string na bytearray, żeby dalej można było ją przekonwertować na typ char
 
 //    system(ping_char.data());
-}
+//}

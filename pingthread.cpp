@@ -51,7 +51,7 @@ void PingThread::sniff()
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
     }
 
-    handle = pcap_open_live(dev, BUFSIZ, 1, 500, errbuf);
+    handle = pcap_open_live(dev, BUFSIZ, 0, 500, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
     }

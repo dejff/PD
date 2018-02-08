@@ -17,7 +17,7 @@ void OpencvThread::run()
     VideoCapture cap;
     String ip = "rtsp://admin:admin@"+ip+":554";
 //    QByteArray byteArray = ip.toUtf8();
-    cap.open(ip);
+    cap.open("rtsp://admin:admin@"+ip+":554");
 //    cap.open(0);
     if(cap.isOpened()){
         cap.get(CAP_PROP_FRAME_WIDTH);
