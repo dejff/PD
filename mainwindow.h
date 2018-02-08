@@ -8,6 +8,7 @@
 #include "videothread.h"
 #include "opencvthread.h"
 #include <QTimer>
+#include <oping.h>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +27,7 @@ private slots:
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
     void checkThreads();
+    void ping();
 
 private:
     Ui::MainWindow *ui;
@@ -35,6 +37,7 @@ private:
     VideoThread *videoThread;
     OpencvThread *opencvThread;
     QTimer *timer;
+    QTimer *pingTimer;
 };
 
 #endif // MAINWINDOW_H

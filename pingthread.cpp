@@ -8,30 +8,34 @@ PingThread::PingThread(QString ip)
 }
 
 PingThread::~PingThread(){
-    timer->stop();
+    timer.stop();
 }
 
 
 void PingThread::run()
 {
-    timer = new QTimer(this);       //timer odmierzający czas pomiędzy kolejnymi pingami
-    connect(timer, SIGNAL(timeout()),this, SLOT(ping()));     //połączenie timera z funkcją
-    timer->start(5000);             //uruchomienie timera, z interwałem 5s
+//    sniff();
+    qDebug()<<"poszedł wątek";
+    QTimer timer;       //timer odmierzający czas pomiędzy kolejnymi pingami
+    connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
+    timer.start(1000);             //uruchomienie timera, z interwałem 5s
+    exec();
 }
 
 /**
  * @brief PingThread::ping
  * Metoda pingująca adres ip, wprowadzony w GUI
  */
-void PingThread::ping()
+void PingThread::sniff()
 {
+    qDebug()<<"test";
+    int pingCount=0;
     struct bpf_program fp;	//skompilowane wyrażenie
     bpf_u_int32 mask;		/* maska podsieci */
     bpf_u_int32 net;		/* The IP of our sniffing device */
 
     //wysyłanie 5 pakietów ICMP na adres podany w interfejsie graficznym
-    QString ping_exp = "ping "+ip+" -c 5";
-    QByteArray ping_char = ping_exp.toUtf8();
+
 
     char *dev, errbuf[PCAP_ERRBUF_SIZE];
 
@@ -40,33 +44,33 @@ void PingThread::ping()
 
     pcap_t *handle;
     QString filter_string = "icmp and ip src "+ip;
+    qDebug()<<filter_string;
     const char *filter_exp = filter_string.toUtf8().data();
 
     if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
-//        return(1);
     }
 
-    handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
+    handle = pcap_open_live(dev, BUFSIZ, 1, 500, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
-//        return(2);
     }
 
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
         fprintf(stderr, "Couldn't parse filter %s: %s\n", filter_exp, pcap_geterr(handle));
-//        return(3);
     }
     if (pcap_setfilter(handle, &fp) == -1) {
         fprintf(stderr, "Couldn't install filter %s: %s\n", filter_exp, pcap_geterr(handle));
-//        return(4);
     }
 
+    QString ping_exp = "ping "+ip+" -c 5 >/dev/null 2>&1";   //wykonanie pinga bez wyświetlania informacji w terminalu
+    QByteArray ping_char = ping_exp.toUtf8();               //przekonwertowania zmiennej typu string na bytearray, żeby dalej można było ją przekonwertować na typ char
+
     system(ping_char.data());
+
     //przechwytywanie pakietów
-    if(pcap_dispatch(handle,5,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
-        qDebug()<<"brak połączenia z kamerą";
-        quit();
+    if(pcap_dispatch(handle,0,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
+        quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
     }
 
     pcap_close(handle);
@@ -75,5 +79,6 @@ void PingThread::ping()
 
 void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    qDebug()<<"przechwycono pakiet";
+    qDebug()<<"mamy pakiet";
+
 }
