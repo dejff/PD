@@ -14,11 +14,9 @@ PingThread::~PingThread(){
 
 void PingThread::run()
 {
-//    sniff();
-    qDebug()<<"poszedł wątek";
     QTimer timer;       //timer odmierzający czas pomiędzy kolejnymi pingami
     connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
-    timer.start(1000);             //uruchomienie timera, z interwałem 5s
+    timer.start(500);             //uruchomienie timera, z interwałem 5s
     exec();
 }
 
@@ -28,7 +26,6 @@ void PingThread::run()
  */
 void PingThread::sniff()
 {
-    qDebug()<<"test";
     int pingCount=0;
     struct bpf_program fp;	//skompilowane wyrażenie
     bpf_u_int32 mask;		/* maska podsieci */
@@ -44,14 +41,13 @@ void PingThread::sniff()
 
     pcap_t *handle;
     QString filter_string = "icmp and ip src "+ip;
-    qDebug()<<filter_string;
     const char *filter_exp = filter_string.toUtf8().data();
 
     if (pcap_lookupnet(dev, &net, &mask, errbuf) == -1) {
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
     }
 
-    handle = pcap_open_live(dev, BUFSIZ, 0, 500, errbuf);
+    handle = pcap_open_live(dev, BUFSIZ, 0, 1000, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
     }
@@ -79,6 +75,5 @@ void PingThread::sniff()
 
 void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    qDebug()<<"mamy pakiet";
-
+    qDebug()<<"pakiet:";
 }

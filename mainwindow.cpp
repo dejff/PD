@@ -33,12 +33,12 @@ void MainWindow::on_start_cap_button_clicked()
     ui->stop_cap_button->setEnabled(true);
     //inicjalizacja wątków
     pingThread = new PingThread(ui->ip_addr->text());
-    videoThread = new VideoThread(ui->ip_addr->text());
+    videoThread = new VideoThread(ui->ip_addr->text(), ui->fps_label->winId());
     opencvThread = new OpencvThread(ui->ip_addr->text());
     //uruchomienie wątków
     pingThread->start();
-//    videoThread->start();
-//    opencvThread->start();
+    videoThread->start();
+    opencvThread->start();
 
     ui->status_label->setText("Program działa");
 
@@ -113,11 +113,11 @@ void MainWindow::checkThreads(){
             qDebug()<<"ping nie działa";
             sendFrame(1);
             //błąd polecenia ping, błąd połączenia
-        }/*else if (videoThread->isFinished()) {
+        }else if (videoThread->isFinished()) {
             qDebug()<<"video nie działa";
             sendFrame(2);
             //błąd połączenia video (libavc)
-        }*/else{
+        }else{
             qDebug()<<"opencv nie działa";
             sendFrame(3);
             //błąd połączenia video (opencv)

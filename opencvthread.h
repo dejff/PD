@@ -9,6 +9,7 @@ public:
     OpencvThread(QString ip);
     ~OpencvThread();
     void run() override;
+    void capture();
 private:
     QString ip;
 };
