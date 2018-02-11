@@ -14,8 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
     timer = new QTimer(this);
     pingTimer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
-    connect(pingTimer, SIGNAL(timeout()), this, SLOT(ping()));
+//    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
+//    connect(pingTimer, SIGNAL(timeout()), this, SLOT(ping()));
 }
 
 MainWindow::~MainWindow()
@@ -32,18 +32,18 @@ void MainWindow::on_start_cap_button_clicked()
     ui->start_cap_button->setEnabled(false);
     ui->stop_cap_button->setEnabled(true);
     //inicjalizacja wątków
-    pingThread = new PingThread(ui->ip_addr->text());
-    videoThread = new VideoThread(ui->ip_addr->text(), ui->fps_label->winId());
+//    pingThread = new PingThread(ui->ip_addr->text());
+//    videoThread = new VideoThread(ui->ip_addr->text(), ui->fps_label->winId());
     opencvThread = new OpencvThread(ui->ip_addr->text());
     //uruchomienie wątków
-    pingThread->start();
-    videoThread->start();
+//    pingThread->start();
+//    videoThread->start();
     opencvThread->start();
 
     ui->status_label->setText("Program działa");
 
-    timer->start(200);
-    pingTimer->start(200);
+//    timer->start(200);
+//    pingTimer->start(200);
 
     //uruchomienie funkcji sprawdzającej stan wątków
 }
