@@ -3,7 +3,7 @@
 
 using namespace cv;
 
-OpencvThread::OpencvThread(QString ip, MainWindow ui)
+OpencvThread::OpencvThread(QString ip, Ui::MainWindow *ui)
 {
     this->ip = ip;
     this->ui = ui;
@@ -20,6 +20,10 @@ void OpencvThread::run()
     exec();
 }
 
+/**
+ * @brief OpencvThread::capture
+ * Metoda nawiązująca połączenie z kamerą wideo i
+ */
 void OpencvThread::capture()
 {
     Mat frame;
@@ -28,12 +32,9 @@ void OpencvThread::capture()
 //    cap.open("rtsp://admin:admin@192.168.8.10:554");
 //    cap.open("rtsp://admin:admin@"+ip+":554");
     cap.open(0);
-    qDebug()<<"otwarto cap";
     if(cap.isOpened()){
         cap.read(frame);
-        QString resolutiuons = cap.get(CAP_PROP_FRAME_WIDTH)+"x"+cap.get(CAP_PROP_FRAME_HEIGHT);
-//        qDebug()<<cap.get(CAP_PROP_FRAME_WIDTH);
-//        qDebug()<<cap.get(CAP_PROP_FRAME_HEIGHT);
+        ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
         qDebug()<<QString::number(cap.get(CAP_PROP_FOURCC));
     }else{
         QThread::quit();
@@ -46,18 +47,25 @@ void OpencvThread::capture()
  * Metoda zwracająca 1 w przypadku kiedy ramki sa różne (obraz nie jest zamrożony), lub 2 w przypadku kiedy wystąpiło zamrożenie obrazu
  * @return
  */
-int checkFreeze()
+int OpencvThread::checkFreeze()
 {
-//    if(frame1==NULL){
-
-//    }
-//    absdiff(frame1, frame2);
-//    if(absdiff(frame1, frame2)!=0)      //różnica macierzy frame1 i frame2 jest różna od siebie
-//    {
-//        return 1;
-//    }
-//    else
-//    {
-//        return 2;
-//    }
+    Mat frame1, frame2, outFrame;
+    if(frame1.empty()){
+        cap.read(frame1);    }
+    else{
+        cap.read(frame2);
+    }
+    if(frame1.rows==frame2.rows && frame1.cols==frame2.cols)      //jeśli obie ramki mają tyle samo weirszy i kolumn
+    {
+        absdiff(frame1, frame2, outFrame);
+        if(countNonZero(outFrame)==0){      //ilość nie zerowych elementów w macierzy jest równa zero,
+                                            //czyli obie macierze były identyczne(obie ramki wideo są takie same) zamrożenie obrazu
+            QThread::quit();                //kończy się wątek
+        }
+        return 1;
+    }
+    else
+    {
+        return 2;
+    }
 }

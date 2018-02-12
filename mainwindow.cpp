@@ -8,10 +8,18 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
+    QStringList connectionTypes;
+    connectionTypes << "RTSP"<<"UDP";
+    ui->comboBox->addItems(connectionTypes);
     startShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_R), this);  //ustawienie skrótu na rozpoczęcie skanowania
     stopShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_S), this);   //ustawienie skrótu na zakończenie skanowania
     connect(startShortcut, SIGNAL(activated()),this, SLOT(on_start_cap_button_clicked()));  //połączenie skrtótu klawiszowego z przyciskiem "Zacznij przechwytywanie"
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
+    ui->passwordField->setEchoMode(QLineEdit::Password);        //ustawianie pola hasła
+    ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
+    ui->passwordField->setPlaceholderText("Hasło");
+    ui->loginField->setPlaceholderText("Login");
+//    connect(ui->comboBox, SIGNAL(currentIndexChanged(QString)), streamType, SLOT());
     timer = new QTimer(this);
     pingTimer = new QTimer(this);
 //    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
@@ -29,12 +37,15 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_start_cap_button_clicked()
 {
+
+
+    qDebug()<<"choosen conn type: "+ui->comboBox->currentText();
     ui->start_cap_button->setEnabled(false);
     ui->stop_cap_button->setEnabled(true);
     //inicjalizacja wątków
 //    pingThread = new PingThread(ui->ip_addr->text());
 //    videoThread = new VideoThread(ui->ip_addr->text(), ui->fps_label->winId());
-    opencvThread = new OpencvThread(ui->ip_addr->text());
+    opencvThread = new OpencvThread(ui->ip_addr->text(), ui);
     //uruchomienie wątków
 //    pingThread->start();
 //    videoThread->start();
@@ -126,16 +137,3 @@ void MainWindow::checkThreads(){
     }
 
 }
-
-/**
- * @brief MainWindow::ping
- * Funkcja pingująca urządzenie znajdujące się pod adresem
- */
-//void MainWindow::ping()
-//{
-//    qDebug()<<"poszedł ping";
-//    QString ping_exp = "ping "+ui->ip_addr->text()+" -c 5 >/dev/null 2>&1";   //wykonanie pinga bez wyświetlania informacji w terminalu
-//    QByteArray ping_char = ping_exp.toUtf8();               //przekonwertowania zmiennej typu string na bytearray, żeby dalej można było ją przekonwertować na typ char
-
-//    system(ping_char.data());
-//}

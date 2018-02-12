@@ -3,18 +3,19 @@
 #include <QThread>
 #include <QTimer>
 #include <opencv2/opencv.hpp>
-#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 using namespace cv;
 
 class OpencvThread: public QThread
 {
 public:
-    OpencvThread(QString ip, MainWindow ui);
+    OpencvThread(QString ip, Ui::MainWindow *ui);
     ~OpencvThread();
     void run() override;
     void capture();
 private:
+    Ui::MainWindow *ui;
     QString ip;
     VideoCapture cap;
     QTimer frameFreezeTimer;

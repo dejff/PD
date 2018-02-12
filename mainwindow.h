@@ -29,6 +29,7 @@ private slots:
 //    void ping();
 
 private:
+    QString streamType;
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
     QShortcut *stopShortcut;
