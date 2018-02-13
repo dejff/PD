@@ -4,31 +4,33 @@
 #include <vlc/libvlc.h>
 #include <vlc/vlc.h>
 #include <vlc/libvlc_media.h>
+#include "ui_mainwindow.h"
+#include "libavutil/mathematics.h"
+#include <stdio.h>
+
 extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 }
-#include "libavutil/mathematics.h"
-#include <stdio.h>
 
 #define INBUF_SIZE 4096
 
 class VideoThread: public QThread
 {
 public:
-    VideoThread(QString ip, int winId);
+    VideoThread(QString url, Ui::MainWindow *ui);
     ~VideoThread();
     void run() override;
     void processVideo();
     void streamProcess();
     void test();
 private:
+    Ui::MainWindow *ui;
     libvlc_instance_t *instance;
     libvlc_media_t *m;
     libvlc_media_player_t *mp;
-    QString ip;
-    int winId;
+    QString url;
     AVCodec *codec;
     AVCodecContext *c;
     int frame, got_picture, len;

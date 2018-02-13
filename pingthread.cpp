@@ -47,7 +47,7 @@ void PingThread::sniff()
         fprintf(stderr, "Couldn't get netmask for device %s: %s\n", dev, errbuf);
     }
 
-    handle = pcap_open_live(dev, BUFSIZ, 0, 1000, errbuf);
+    handle = pcap_open_live(dev, BUFSIZ, 0, 500, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
     }
@@ -66,7 +66,7 @@ void PingThread::sniff()
 
     //przechwytywanie pakietów
     if(pcap_dispatch(handle,0,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
-        quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
+        QThread::quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
     }
 
     pcap_close(handle);
@@ -75,5 +75,5 @@ void PingThread::sniff()
 
 void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    qDebug()<<"pakiet:";
+//    qDebug()<<"pakiet:";
 }

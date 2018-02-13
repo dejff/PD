@@ -6,24 +6,26 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
     ui->setupUi(this);
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
     QStringList connectionTypes;
     connectionTypes << "RTSP"<<"UDP";
-    ui->comboBox->addItems(connectionTypes);
+    ui->checkBox->setChecked(false);                    //ustawienie wartości początkowych dla pól hasło, login i checkboxa
+    ui->loginField->setDisabled(true);
+    ui->passwordField->setDisabled(true);
+    ui->protocolType->addItems(connectionTypes);
     startShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_R), this);  //ustawienie skrótu na rozpoczęcie skanowania
     stopShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_S), this);   //ustawienie skrótu na zakończenie skanowania
     connect(startShortcut, SIGNAL(activated()),this, SLOT(on_start_cap_button_clicked()));  //połączenie skrtótu klawiszowego z przyciskiem "Zacznij przechwytywanie"
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
+    connect(ui->checkBox, SIGNAL(toggled(bool)), this, SLOT(checkBoxClicked()));
     ui->passwordField->setEchoMode(QLineEdit::Password);        //ustawianie pola hasła
     ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
     ui->passwordField->setPlaceholderText("Hasło");
     ui->loginField->setPlaceholderText("Login");
-//    connect(ui->comboBox, SIGNAL(currentIndexChanged(QString)), streamType, SLOT());
     timer = new QTimer(this);
-    pingTimer = new QTimer(this);
-//    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
-//    connect(pingTimer, SIGNAL(timeout()), this, SLOT(ping()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
 }
 
 MainWindow::~MainWindow()
@@ -33,69 +35,97 @@ MainWindow::~MainWindow()
 
 /**
  * @brief MainWindow::on_start_cap_button_clicked
- * Funkcja jaka się wykona po naciśnięciu klawiszan "Zatrzymaj przechwytywanie"
+ * Funkcja jaka się wykona po naciśnięciu klawisza "Zacznij przechwytywanie"
  */
 void MainWindow::on_start_cap_button_clicked()
 {
+    QMessageBox msg;
+    url = "";
+    if(ui->ip_addr->text().isEmpty() || ui->ip_addr->text().length()<=4){       //sprawdzamy czy użtykownik cokolwiek wpisał
 
+        if(ui->checkBox->isChecked()){
+            msg.setText("Proszę uzupełnić pola ip, hasła i loginu.\nPole port jeśli nie uzupełnione oznacza posrt domyślny.");
+        }else{
+            msg.setText("Proszę uzupełnić pole ip.\nPole port jeśli nie uzupełnione oznacza posrt domyślny.");
+        }
 
-    qDebug()<<"choosen conn type: "+ui->comboBox->currentText();
-    ui->start_cap_button->setEnabled(false);
-    ui->stop_cap_button->setEnabled(true);
-    //inicjalizacja wątków
-//    pingThread = new PingThread(ui->ip_addr->text());
-//    videoThread = new VideoThread(ui->ip_addr->text(), ui->fps_label->winId());
-    opencvThread = new OpencvThread(ui->ip_addr->text(), ui);
-    //uruchomienie wątków
-//    pingThread->start();
-//    videoThread->start();
-    opencvThread->start();
+        msg.exec();
 
-    ui->status_label->setText("Program działa");
+    }else{
 
-//    timer->start(200);
-//    pingTimer->start(200);
+        if(ui->checkBox->isChecked()){              //jeśli zaznaczony jesty checkbox "Zabezpieczone hasłem" to dodajemy do url'a informacje o haśle i loginie
+            credentials = ui->loginField->text()+":"+ui->passwordField->text()+"@";
+        }else{
+            credentials = "";
+        }
 
-    //uruchomienie funkcji sprawdzającej stan wątków
+        if(ui->protocolType->currentText()=="RTSP"){
+            url = "rtsp://";
+        }else{
+            url = "udp://";
+        }
+
+        if(!ui->portField->text().isEmpty()){
+            url+=credentials+ui->ip_addr->text()+":"+ui->portField->text();
+        }else{
+            url+=credentials+ui->ip_addr->text();
+        }
+
+        ui->start_cap_button->setEnabled(false);
+        ui->stop_cap_button->setEnabled(true);
+        //inicjalizacja wątków
+        pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
+        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
+        opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
+        //uruchomienie wątków
+        pingThread->start();
+        videoThread->start();
+        opencvThread->start();
+
+        ui->status_label->setText("Program działa");
+
+        qDebug()<<"tst";
+        //uruchomienie funkcji sprawdzającej stan wątków
+        timer->start(200);
+    }
+
 }
 /**
  * @brief MainWindow::on_stop_cap_button_clicked
- * Funkcja jaka się wykona po naciśnięciu klawisza "Zacznij przechwytywanie"
+ * Funkcja jaka się wykona po naciśnięciu klawisza "Zatrzymaj przechwytywanie"
  */
 void MainWindow::on_stop_cap_button_clicked()
 {
+    if(timer->isActive()){
+        timer->stop();
+    }
+
+
+    ui->status_label->setText("Zatrzymano");
+
     ui->stop_cap_button->setEnabled(false);
     ui->start_cap_button->setEnabled(true);
-    qDebug()<<"stop";
     //zakończenie wątka pingującego urządzenie
     if(pingThread->isRunning()){
+
         pingThread->quit();
         pingThread->wait();
-        delete pingThread;
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
     if(videoThread->isRunning()){
+
         videoThread->quit();
         videoThread->wait();
-        delete videoThread;
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
     if(opencvThread->isRunning()){
+
         opencvThread->quit();
         opencvThread->wait();
-        delete opencvThread;
     }
 
-    if(timer->isActive()){
-        timer->stop();
-    }
-    if(pingTimer->isActive()){
-        pingTimer->stop();
-    }
-
-    ui->status_label->setText("Zatrzymano");
 }
 
 /**
@@ -105,6 +135,7 @@ void MainWindow::on_stop_cap_button_clicked()
  */
 void MainWindow::sendFrame(int code)
 {
+    //do dokończenia
     qDebug()<<"code sent: "+QString::number(code);
 }
 
@@ -113,6 +144,7 @@ void MainWindow::sendFrame(int code)
  * Funkcja monitorująca stan poszczególnych wątków, i jeśli któryś z nich zostanie zakończony to wysłany zostanie komunikat o błędzie
  */
 void MainWindow::checkThreads(){
+    QMessageBox msg;
 
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
@@ -121,19 +153,41 @@ void MainWindow::checkThreads(){
 
         timer->stop();
         if(pingThread->isFinished()){
-            qDebug()<<"ping nie działa";
-            sendFrame(1);
             //błąd polecenia ping, błąd połączenia
+            qDebug()<<"błąd połączenia";
+            msg.setText("Brak połączenia z urządzeniem");
+            sendFrame(1);
         }else if (videoThread->isFinished()) {
-            qDebug()<<"video nie działa";
+            //błąd połączenia video (libavc) - pobieranie parametrów strumienia wideo
+            qDebug()<<"błąd video thread";
+            msg.setText("Problem z połączeniem");
             sendFrame(2);
-            //błąd połączenia video (libavc)
         }else{
-            qDebug()<<"opencv nie działa";
-            sendFrame(3);
-            //błąd połączenia video (opencv)
+            //błąd połączenia video (opencv) - sprawdzanie czy wystąpiło zamrożenie obrazu
+            qDebug()<<"błąd open cv";
+            if(pingThread->isFinished()){
+                msg.setText("Problem z połączeniem");
+                sendFrame(1);
+                opencvThread->quit();
+            }else{
+                opencvThread->quit();
+                msg.setText("Wykryto zamrożenie obrazu");
+                sendFrame(3);
+            }
         }
+
         on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+        msg.exec();
     }
 
+}
+
+void MainWindow::checkBoxClicked(){
+    if(!ui->checkBox->isChecked()){
+        ui->passwordField->setDisabled(true);
+        ui->loginField->setDisabled(true);
+    }else{
+        ui->passwordField->setEnabled(true);
+        ui->loginField->setEnabled(true);
+    }
 }

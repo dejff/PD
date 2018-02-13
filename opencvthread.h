@@ -10,13 +10,13 @@ using namespace cv;
 class OpencvThread: public QThread
 {
 public:
-    OpencvThread(QString ip, Ui::MainWindow *ui);
+    OpencvThread(QString url, Ui::MainWindow *ui);
     ~OpencvThread();
     void run() override;
     void capture();
 private:
     Ui::MainWindow *ui;
-    QString ip;
+    QString url;
     VideoCapture cap;
     QTimer frameFreezeTimer;
     Mat frame1, frame2;

@@ -8,6 +8,7 @@
 #include "videothread.h"
 #include "opencvthread.h"
 #include <QTimer>
+#include <QMessageBox>
 
 namespace Ui {
 class MainWindow;
@@ -26,10 +27,11 @@ private slots:
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
     void checkThreads();
+    void checkBoxClicked();
 //    void ping();
 
 private:
-    QString streamType;
+    QString port, url, credentials;
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
     QShortcut *stopShortcut;
@@ -37,7 +39,6 @@ private:
     VideoThread *videoThread;
     OpencvThread *opencvThread;
     QTimer *timer;
-    QTimer *pingTimer;
 };
 
 #endif // MAINWINDOW_H

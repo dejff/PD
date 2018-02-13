@@ -3,9 +3,9 @@
 
 using namespace cv;
 
-OpencvThread::OpencvThread(QString ip, Ui::MainWindow *ui)
+OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
 {
-    this->ip = ip;
+    this->url = url;
     this->ui = ui;
 }
 
@@ -27,15 +27,10 @@ void OpencvThread::run()
 void OpencvThread::capture()
 {
     Mat frame;
-    String ip = "rtsp://admin:admin@"+ip+":554";
-//    QByteArray byteArray = ip.toUtf8();
-//    cap.open("rtsp://admin:admin@192.168.8.10:554");
-//    cap.open("rtsp://admin:admin@"+ip+":554");
-    cap.open(0);
+    cap.open(url.toUtf8().data());
     if(cap.isOpened()){
         cap.read(frame);
         ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
-        qDebug()<<QString::number(cap.get(CAP_PROP_FOURCC));
     }else{
         QThread::quit();
     }

@@ -1,10 +1,10 @@
 #include "videothread.h"
 #include <QDebug>
 
-VideoThread::VideoThread(QString ip, int winId)
+VideoThread::VideoThread(QString url, Ui::MainWindow *ui)
 {
-    this->ip = ip;
-    this->winId = winId;
+    this->url = url;
+    this->ui = ui;
 }
 
 VideoThread::~VideoThread()
@@ -30,13 +30,13 @@ void VideoThread::processVideo()
     instance = libvlc_new(0, NULL);
     mp = libvlc_media_player_new(instance);
     qDebug()<<"instancja?";
-    QString addr_exp = "rtsp://admin:admin@"+ip+":554";
-    QByteArray byteArray = addr_exp.toUtf8();
+//    QString addr_exp = "rtsp://admin:admin@"+ip+":554";
+    QByteArray byteArray = url.toUtf8();
     const char *ch_arr = byteArray.data();
     m = libvlc_media_new_location(instance, ch_arr);
     libvlc_media_player_set_media(mp, m);
 //    qDebug()<<"wys.: "+QString::number(libvlc_video_get_height(mp));
-    libvlc_media_player_set_xwindow(mp, winId);
+//    libvlc_media_player_set_xwindow(mp, winId);
     libvlc_media_player_play (mp);
 
 //    qDebug()<<libvlc_media_get_type(mp);
@@ -142,11 +142,13 @@ void VideoThread::test()
     av_register_all();
     avformat_network_init();
 
-    if(avformat_open_input(&context, "rtsp://134.169.178.187:8554/h264.3gp",NULL,NULL) != 0){
+    if(avformat_open_input(&context,url.toUtf8().data(),NULL,NULL) != 0){
+        QThread::quit();
 //        return EXIT_FAILURE;
     }
 
     if(avformat_find_stream_info(context,NULL) < 0){
+        QThread::quit();
 //        return EXIT_FAILURE;
     }
 
