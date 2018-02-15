@@ -16,7 +16,8 @@ OpencvThread::~OpencvThread()
 
 void OpencvThread::run()
 {
-    capture();
+    connect(&frameFreezeTimer, SIGNAL(timeout()), this, SLOT(checkFreeze()), Qt::DirectConnection);
+    frameFreezeTimer.start(3000);       //co 3 sekundy będzie uruchamiała się funkcja porównująca dwie ramki przechwycone w odstępnie 2-sekundowym
     exec();
 }
 
