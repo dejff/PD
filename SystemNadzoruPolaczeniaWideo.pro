@@ -33,13 +33,15 @@ SOURCES += \
         mainwindow.cpp \
     pingthread.cpp \
     videothread.cpp \
-    opencvthread.cpp
+    opencvthread.cpp \
+    socketthread.cpp
 
 HEADERS += \
         mainwindow.h \
     pingthread.h \
     videothread.h \
-    opencvthread.h
+    opencvthread.h \
+    socketthread.h
 
 FORMS += \
         mainwindow.ui

@@ -28,6 +28,7 @@ private slots:
     void on_start_cap_button_clicked();
     void checkThreads();
     void checkBoxClicked();
+    void portCheckBoxClicked();
 //    void ping();
 
 private:

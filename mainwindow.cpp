@@ -6,11 +6,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-
+    QValidator *portValidator = new QIntValidator(0, 65535, this);      //zdefiniowanie walidatora dla pola port zakres od 0 do 65535
     ui->setupUi(this);
+    this->setFixedHeight(this->height());
+    this->setFixedWidth(this->width());
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
+    ui->listenPort->setValidator(portValidator);
     QStringList connectionTypes;
     connectionTypes << "RTSP"<<"UDP";
+    ui->portCheckBox->setChecked(false);
+    ui->listenPort->setDisabled(true);
     ui->checkBox->setChecked(false);                    //ustawienie wartości początkowych dla pól hasło, login i checkboxa
     ui->loginField->setDisabled(true);
     ui->passwordField->setDisabled(true);
@@ -20,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(startShortcut, SIGNAL(activated()),this, SLOT(on_start_cap_button_clicked()));  //połączenie skrtótu klawiszowego z przyciskiem "Zacznij przechwytywanie"
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
     connect(ui->checkBox, SIGNAL(toggled(bool)), this, SLOT(checkBoxClicked()));
+    connect(ui->portCheckBox, SIGNAL(toggled(bool)), this, SLOT(portCheckBoxClicked()));
     ui->passwordField->setEchoMode(QLineEdit::Password);        //ustawianie pola hasła
     ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
     ui->passwordField->setPlaceholderText("Hasło");
@@ -46,7 +52,7 @@ void MainWindow::on_start_cap_button_clicked()
         if(ui->checkBox->isChecked()){
             msg.setText("Proszę uzupełnić pola ip, hasła i loginu.\nPole port jeśli nie uzupełnione oznacza posrt domyślny.");
         }else{
-            msg.setText("Proszę uzupełnić pole ip.\nPole port jeśli nie uzupełnione oznacza posrt domyślny.");
+            msg.setText("Proszę uzupełnić pole ip.\nPole port jeśli nie uzupełnione oznacza port domyślny.");
         }
 
         msg.exec();
@@ -81,7 +87,6 @@ void MainWindow::on_start_cap_button_clicked()
         pingThread->start();
         videoThread->start();
         opencvThread->start();
-
         ui->status_label->setText("Program działa");
 
         qDebug()<<"tst";
@@ -182,6 +187,10 @@ void MainWindow::checkThreads(){
 
 }
 
+/**
+ * @brief MainWindow::checkBoxClicked
+ * Metoda aktuwująca i dezaktywująca pola hasła i loginu
+ */
 void MainWindow::checkBoxClicked(){
     if(!ui->checkBox->isChecked()){
         ui->passwordField->setDisabled(true);
@@ -189,5 +198,17 @@ void MainWindow::checkBoxClicked(){
     }else{
         ui->passwordField->setEnabled(true);
         ui->loginField->setEnabled(true);
+    }
+}
+
+/**
+ * @brief MainWindow::portCheckBoxClicked
+ * Metoda aktywująca i dezaktywująca pole portu nasłuchującego
+ */
+void MainWindow::portCheckBoxClicked(){
+    if(!ui->portCheckBox->isChecked()){
+        ui->listenPort->setDisabled(true);
+    }else{
+        ui->listenPort->setDisabled(false);
     }
 }

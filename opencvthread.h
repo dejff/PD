@@ -9,7 +9,10 @@ using namespace cv;
 
 class OpencvThread: public QThread
 {
+    Q_OBJECT
+
 public:
+    OpencvThread();
     OpencvThread(QString url, Ui::MainWindow *ui);
     ~OpencvThread();
     void run() override;
@@ -18,8 +21,8 @@ private:
     Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;
-    QTimer frameFreezeTimer;
     Mat frame1, frame2;
+    void getVideo();
 private slots:
     int checkFreeze();
 };

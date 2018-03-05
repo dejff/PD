@@ -40,7 +40,7 @@ void VideoThread::processVideo()
     libvlc_media_player_play (mp);
 
 //    qDebug()<<libvlc_media_get_type(mp);
-    printf("wys.: %d", libvlc_audio_get_delay(mp));
+    printf("opóźnienie: %d", libvlc_audio_get_delay(mp));
     qDebug()<<"program działa"+libvlc_audio_get_delay(mp);
 }
 

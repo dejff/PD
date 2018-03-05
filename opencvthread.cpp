@@ -3,6 +3,11 @@
 
 using namespace cv;
 
+OpencvThread::OpencvThread()
+{
+
+}
+
 OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
 {
     this->url = url;
@@ -16,8 +21,10 @@ OpencvThread::~OpencvThread()
 
 void OpencvThread::run()
 {
+    QTimer frameFreezeTimer;
     connect(&frameFreezeTimer, SIGNAL(timeout()), this, SLOT(checkFreeze()), Qt::DirectConnection);
     frameFreezeTimer.start(3000);       //co 3 sekundy będzie uruchamiała się funkcja porównująca dwie ramki przechwycone w odstępnie 2-sekundowym
+
     exec();
 }
 
@@ -64,4 +71,9 @@ int OpencvThread::checkFreeze()
     {
         return 2;
     }
+}
+
+void OpencvThread::getVideo()
+{
+
 }
