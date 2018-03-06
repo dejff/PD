@@ -89,7 +89,6 @@ void MainWindow::on_start_cap_button_clicked()
         opencvThread->start();
         ui->status_label->setText("Program działa");
 
-        qDebug()<<"tst";
         //uruchomienie funkcji sprawdzającej stan wątków
         timer->start(200);
     }
