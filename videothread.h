@@ -25,6 +25,7 @@ public:
     void processVideo();
     void streamProcess();
     void test();
+    void stopVideo();
 private:
     Ui::MainWindow *ui;
     libvlc_instance_t *instance;

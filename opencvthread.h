@@ -17,7 +17,11 @@ public:
     ~OpencvThread();
     void run() override;
     void capture();
+    void stopCapture();
 private:
+    bool captureFrame;
+    QTimer frameFreezeTimer;
+    QImage img;
     Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;

@@ -111,25 +111,38 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->start_cap_button->setEnabled(true);
     //zakończenie wątka pingującego urządzenie
     if(pingThread->isRunning()){
-
+        pingThread->stopPing();
+        qDebug()<<"ping thr. zamykanie";
         pingThread->quit();
         pingThread->wait();
+        qDebug()<<"ping thr. zamknięty";
+        delete pingThread;
+        qDebug()<<"usunięte ping";
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
     if(videoThread->isRunning()){
-
+qDebug()<<"video thr. zamykanie";
+        videoThread->stopVideo();
         videoThread->quit();
         videoThread->wait();
+        qDebug()<<"video thr. zamknięty";
+        delete videoThread;
+        qDebug()<<"usunięte video";
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
     if(opencvThread->isRunning()){
-
+qDebug()<<"opencv thr. zamykanie";
+        opencvThread->stopCapture();
+        qDebug()<<"Wychodzenie z opencv thr.";
         opencvThread->quit();
+        qDebug()<<"Czekanie na zamknięcie opencvthread";
         opencvThread->wait();
+        qDebug()<<"opencv thr. zamknięty";
+        delete opencvThread;
+        qDebug()<<"opencv usunięty";
     }
-
 }
 
 /**
@@ -161,11 +174,15 @@ void MainWindow::checkThreads(){
             qDebug()<<"błąd połączenia";
             msg.setText("Brak połączenia z urządzeniem");
             sendFrame(1);
+            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+            msg.exec();
         }else if (videoThread->isFinished()) {
             //błąd połączenia video (libavc) - pobieranie parametrów strumienia wideo
             qDebug()<<"błąd video thread";
             msg.setText("Problem z połączeniem");
             sendFrame(2);
+            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+            msg.exec();
         }else{
             //błąd połączenia video (opencv) - sprawdzanie czy wystąpiło zamrożenie obrazu
             qDebug()<<"błąd open cv";
@@ -173,15 +190,18 @@ void MainWindow::checkThreads(){
                 msg.setText("Problem z połączeniem");
                 sendFrame(1);
                 opencvThread->quit();
+                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+                msg.exec();
             }else{
                 opencvThread->quit();
                 msg.setText("Wykryto zamrożenie obrazu");
                 sendFrame(3);
+                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+                msg.exec();
             }
         }
 
-        on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-        msg.exec();
+
     }
 
 }

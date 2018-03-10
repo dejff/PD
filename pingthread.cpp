@@ -8,13 +8,14 @@ PingThread::PingThread(QString ip)
 }
 
 PingThread::~PingThread(){
-    timer.stop();
+    qDebug()<<"destruktor ping thread";
+//    timer.stop();
 }
 
 
 void PingThread::run()
 {
-    QTimer timer;       //timer odmierzający czas pomiędzy kolejnymi pingami
+//    QTimer timer;       //timer odmierzający czas pomiędzy kolejnymi pingami
     connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
     timer.start(500);             //uruchomienie timera, z interwałem 5s
     exec();
@@ -39,7 +40,7 @@ void PingThread::sniff()
     //otwieranie domyślnej karty sieciowej
     dev = pcap_lookupdev(errbuf);
 
-    pcap_t *handle;
+//    pcap_t *handle;
     QString filter_string = "icmp and ip src "+ip;
     const char *filter_exp = filter_string.toUtf8().data();
 
@@ -66,11 +67,18 @@ void PingThread::sniff()
 
     //przechwytywanie pakietów
     if(pcap_dispatch(handle,0,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
+        qDebug()<<"Zerwanie połączenia";
         QThread::quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
     }
 
     pcap_close(handle);
 
+}
+
+void PingThread::stopPing()
+{
+    qDebug()<<"stop ping";
+//    pcap_close(handle);
 }
 
 void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)

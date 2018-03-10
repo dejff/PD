@@ -17,9 +17,10 @@ VideoThread::~VideoThread()
     libvlc_release(instance);
 }
 
+
 void VideoThread::run(){
-//    processVideo();
-    streamProcess();
+    processVideo();
+//    streamProcess();
     exec();
 }
 
@@ -30,18 +31,25 @@ void VideoThread::processVideo()
     instance = libvlc_new(0, NULL);
     mp = libvlc_media_player_new(instance);
     qDebug()<<"instancja?";
-//    QString addr_exp = "rtsp://admin:admin@"+ip+":554";
     QByteArray byteArray = url.toUtf8();
     const char *ch_arr = byteArray.data();
-    m = libvlc_media_new_location(instance, ch_arr);
-    libvlc_media_player_set_media(mp, m);
-//    qDebug()<<"wys.: "+QString::number(libvlc_video_get_height(mp));
-//    libvlc_media_player_set_xwindow(mp, winId);
+//    m = libvlc_media_new_location(instance, ch_arr);
+//    libvlc_media_player_set_media(mp, m);
     libvlc_media_player_play (mp);
 
-//    qDebug()<<libvlc_media_get_type(mp);
     printf("opóźnienie: %d", libvlc_audio_get_delay(mp));
     qDebug()<<"program działa"+libvlc_audio_get_delay(mp);
+}
+
+void VideoThread::stopVideo()
+{
+    qDebug()<<"zaczynam zamykać";
+    libvlc_media_player_stop(mp);
+    qDebug()<<"zaczynam release playera";
+    libvlc_media_player_release(mp);
+    qDebug()<<"Zaczynam releasea libvlc";
+    libvlc_release(instance);
+    qDebug()<<"skończyłem zamykać";
 }
 
 void VideoThread::streamProcess()
