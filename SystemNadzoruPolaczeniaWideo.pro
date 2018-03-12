@@ -34,14 +34,16 @@ SOURCES += \
     pingthread.cpp \
     videothread.cpp \
     opencvthread.cpp \
-    socketthread.cpp
+    socketthread.cpp \
+    freezethread.cpp
 
 HEADERS += \
         mainwindow.h \
     pingthread.h \
     videothread.h \
     opencvthread.h \
-    socketthread.h
+    socketthread.h \
+    freezethread.h
 
 FORMS += \
         mainwindow.ui
