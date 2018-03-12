@@ -147,6 +147,8 @@ void MainWindow::on_stop_cap_button_clicked()
         delete opencvThread;
         qDebug()<<"opencv usunięty";
     }
+    ui->videoLabel->setScaledContents(true);
+    ui->videoLabel->setPixmap(QPixmap::fromImage(img));
 }
 
 /**

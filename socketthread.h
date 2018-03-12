@@ -17,6 +17,7 @@ public:
     void run() override;
     void listen();
 private:
+    Ui::MainWindow *ui;
     int socket_descriptor;
     struct sockaddr_in server;
 };
