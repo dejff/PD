@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
     ui->passwordField->setPlaceholderText("Hasło");
     ui->loginField->setPlaceholderText("Login");
+    QImage img(IMAGE_PATH);                             //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
+    ui->videoLabel->setScaledContents(true);
+    ui->videoLabel->setPixmap(QPixmap::fromImage(img));
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
 }
@@ -118,28 +121,29 @@ void MainWindow::on_stop_cap_button_clicked()
         qDebug()<<"ping thr. zamknięty";
         delete pingThread;
         qDebug()<<"usunięte ping";
-    }
 
+    }
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
     if(videoThread->isRunning()){
-qDebug()<<"video thr. zamykanie";
+        qDebug()<<"video thr. zamykanie";
         videoThread->stopVideo();
         videoThread->quit();
         videoThread->wait();
         qDebug()<<"video thr. zamknięty";
-        delete videoThread;
+//        delete videoThread;
         qDebug()<<"usunięte video";
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
     if(opencvThread->isRunning()){
-qDebug()<<"opencv thr. zamykanie";
+        qDebug()<<"opencv thr. zamykanie";
         opencvThread->stopCapture();
         qDebug()<<"Wychodzenie z opencv thr.";
         opencvThread->quit();
         qDebug()<<"Czekanie na zamknięcie opencvthread";
         opencvThread->wait();
         qDebug()<<"opencv thr. zamknięty";
+        ui->videoLabel->setPixmap(QPixmap::fromImage(img));
         delete opencvThread;
         qDebug()<<"opencv usunięty";
     }
@@ -161,31 +165,33 @@ void MainWindow::sendFrame(int code)
  * Funkcja monitorująca stan poszczególnych wątków, i jeśli któryś z nich zostanie zakończony to wysłany zostanie komunikat o błędzie
  */
 void MainWindow::checkThreads(){
-    QMessageBox msg;
+//void MainWindow::checkThreads(){
 
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
     //na podstawie tego jaki wątek został zatrzymany zostanie wyemitowany odpowiedni pakiet z informacją o błędzie
     if(pingThread->isFinished() || videoThread->isFinished() || opencvThread->isFinished()){
 
+        QMessageBox msg;
+        qDebug()<<"opencv thread work: "+QString(opencvThread->isFinished() ? "true" : "false")+"\n";
         timer->stop();
         if(pingThread->isFinished()){
             //błąd polecenia ping, błąd połączenia
-            qDebug()<<"błąd połączenia";
+//            qDebug()<<"błąd połączenia";
             msg.setText("Brak połączenia z urządzeniem");
             sendFrame(1);
             on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
             msg.exec();
         }else if (videoThread->isFinished()) {
             //błąd połączenia video (libavc) - pobieranie parametrów strumienia wideo
-            qDebug()<<"błąd video thread";
+//            qDebug()<<"błąd video thread";
             msg.setText("Problem z połączeniem");
             sendFrame(2);
             on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
             msg.exec();
         }else{
             //błąd połączenia video (opencv) - sprawdzanie czy wystąpiło zamrożenie obrazu
-            qDebug()<<"błąd open cv";
+//            qDebug()<<"błąd open cv";
             if(pingThread->isFinished()){
                 msg.setText("Problem z połączeniem");
                 sendFrame(1);

@@ -16,19 +16,18 @@ public:
     OpencvThread(QString url, Ui::MainWindow *ui);
     ~OpencvThread();
     void run() override;
-    void capture();
     void stopCapture();
 private:
-    bool captureFrame;
+    bool isStopPushed;
     QTimer frameFreezeTimer;
     QImage img;
     Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;
-    Mat frame1, frame2;
+    Mat frame;
     void getVideo();
 private slots:
-    int checkFreeze();
+    void capture();
 };
 
 #endif // OPENCVTHREAD_H

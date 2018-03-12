@@ -14,7 +14,7 @@ void FreezeThread::run()
 {
 
     QTimer freezeTimer;
-    connect(&freezeTimer, );
+//    connect(&freezeTimer, );
 
 }
 

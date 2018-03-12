@@ -23,8 +23,8 @@ public:
     ~VideoThread();
     void run() override;
     void processVideo();
-    void streamProcess();
-    void test();
+//    void streamProcess();
+//    void test();
     void stopVideo();
 private:
     Ui::MainWindow *ui;

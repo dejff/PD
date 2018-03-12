@@ -13,14 +13,16 @@ class FreezeThread: public QThread
     Q_OBJECT
 public:
     FreezeThread();
+    ~FreezeThread();
     void run() override;
     void stopFreeze();
 
 private:
+    VideoCapture cap;
     bool isStopped;
 
 private slots:
-    void checkFreeze();
+    int checkFreeze();
 };
 
 #endif // FREEZETHREAD_H

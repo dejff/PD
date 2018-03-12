@@ -52,8 +52,8 @@ void VideoThread::stopVideo()
     qDebug()<<"skończyłem zamykać";
 }
 
-void VideoThread::streamProcess()
-{
+//void VideoThread::streamProcess()
+//{
 //    qDebug()<<"stream process";
 //    this->c= NULL;/*
 //    int frame, got_picture, len;
@@ -140,29 +140,29 @@ void VideoThread::streamProcess()
 ////        fclose(f);
 
 
-}
+//}
 
-void VideoThread::test()
-{
-    AVFormatContext* context = avformat_alloc_context();
-//    AVCodecContext* ccontext = avcodec_alloc_context3();
+//void VideoThread::test()
+//{
+//    AVFormatContext* context = avformat_alloc_context();
+////    AVCodecContext* ccontext = avcodec_alloc_context3();
 
-    av_register_all();
-    avformat_network_init();
+//    av_register_all();
+//    avformat_network_init();
 
-    if(avformat_open_input(&context,url.toUtf8().data(),NULL,NULL) != 0){
-        QThread::quit();
-//        return EXIT_FAILURE;
-    }
+//    if(avformat_open_input(&context,url.toUtf8().data(),NULL,NULL) != 0){
+//        QThread::quit();
+////        return EXIT_FAILURE;
+//    }
 
-    if(avformat_find_stream_info(context,NULL) < 0){
-        QThread::quit();
-//        return EXIT_FAILURE;
-    }
+//    if(avformat_find_stream_info(context,NULL) < 0){
+//        QThread::quit();
+////        return EXIT_FAILURE;
+//    }
 
-    AVPacket packet;
-    av_init_packet(&packet);
+//    AVPacket packet;
+//    av_init_packet(&packet);
 
-    AVFormatContext* oc = avformat_alloc_context();
+//    AVFormatContext* oc = avformat_alloc_context();
 
-}
+//}

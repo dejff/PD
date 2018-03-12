@@ -24,6 +24,7 @@ public:
     ~MainWindow();
 
 private slots:
+    const QString IMAGE_PATH = "./file.jpg";
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
     void checkThreads();
@@ -32,6 +33,7 @@ private slots:
 //    void ping();
 
 private:
+    QImage img;
     QString port, url, credentials;
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
