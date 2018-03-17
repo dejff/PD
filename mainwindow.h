@@ -19,12 +19,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    const QString IMAGE_PATH = "./file.jpg";
     explicit MainWindow(QWidget *parent = 0);
     void sendFrame(int code);
     ~MainWindow();
 
 private slots:
-    const QString IMAGE_PATH = "./file.jpg";
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
     void checkThreads();
@@ -34,7 +34,7 @@ private slots:
 
 private:
     QImage img;
-    QString port, url, credentials;
+    QString port, url, credentials, absFilePath;
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
     QShortcut *stopShortcut;

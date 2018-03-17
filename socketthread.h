@@ -12,11 +12,13 @@
 
 class SocketThread: public QThread
 {
+    Q_OBJECT
 public:
     SocketThread(Ui::MainWindow *ui);
     void run() override;
     void listen();
 private:
+    Ui::MainWindow *ui;
     int socket_descriptor;
     struct sockaddr_in server;
 };

@@ -13,7 +13,7 @@ class OpencvThread: public QThread
 
 public:
     OpencvThread();
-    OpencvThread(QString url, Ui::MainWindow *ui);
+    OpencvThread(QString u1rl, Ui::MainWindow *ui);
     ~OpencvThread();
     void run() override;
     void stopCapture();

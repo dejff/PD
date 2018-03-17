@@ -22,6 +22,32 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+CONFIG(debug, debug|release) {
+    DESTDIR = build/debug
+    OBJECTS_DIR = build/debug
+    MOC_DIR = build/debug
+    RCC_DIR = build/debug
+    UI_DIR = build/debug
+} else {
+    DESTDIR = build/release
+    OBJECTS_DIR = build/release
+    MOC_DIR = build/release
+    RCC_DIR = build/release
+    UI_DIR = build/release
+}
+
+Release:DESTDIR = release
+Release:OBJECTS_DIR = release/.obj
+Release:MOC_DIR = release/.moc
+Release:RCC_DIR = release/.rcc
+Release:UI_DIR = release/.ui
+
+Debug:DESTDIR = debug
+Debug:OBJECTS_DIR = debug/.obj
+Debug:MOC_DIR = debug/.moc
+Debug:RCC_DIR = debug/.rcc
+Debug:UI_DIR = debug/.ui
+
 INCLUDEPATH += /usr/local/include/opencv
 LIBS += -L/usr/local/lib -lpcap \
      -lvlc \

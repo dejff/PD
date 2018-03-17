@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -30,9 +31,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
     ui->passwordField->setPlaceholderText("Hasło");
     ui->loginField->setPlaceholderText("Login");
-    QImage img(IMAGE_PATH);                             //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
+    QFileInfo file(IMAGE_PATH);
+    absFilePath = file.absoluteFilePath();
     ui->videoLabel->setScaledContents(true);
-    ui->videoLabel->setPixmap(QPixmap::fromImage(img));
+    ui->videoLabel->setPixmap(QPixmap(absFilePath));                            //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
 }
@@ -140,12 +142,16 @@ void MainWindow::on_stop_cap_button_clicked()
         opencvThread->stopCapture();
         qDebug()<<"Wychodzenie z opencv thr.";
         opencvThread->quit();
-        qDebug()<<"Czekanie na zamknięcie opencvthread";
+        qDebug()<<"Czekanie na zamknięcie opencvthread test qmake";
         opencvThread->wait();
         qDebug()<<"opencv thr. zamknięty";
-        ui->videoLabel->setPixmap(QPixmap::fromImage(img));
         delete opencvThread;
         qDebug()<<"opencv usunięty";
+    }
+
+    //metoda ustawiająca obrazek braku obrazu po zerwaniu/zatrzymaniu połączenia
+    if(opencvThread!=NULL){
+        ui->videoLabel->setPixmap(QPixmap(absFilePath));
     }
 }
 
