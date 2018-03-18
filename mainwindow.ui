@@ -14,13 +14,13 @@
    <string>System Nadzoru Połączenia Wideo</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>10</y>
       <width>803</width>
-      <height>484</height>
+      <height>503</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
@@ -59,28 +59,28 @@
        </item>
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="7" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="label_9">
            <property name="text">
             <string>Jitter</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="label_8">
            <property name="text">
             <string>Adres IP urządzenia</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QLabel" name="label_11">
            <property name="text">
             <string>Port</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="8" column="1">
           <widget class="QLabel" name="jitterLabel">
            <property name="styleSheet">
             <string notr="true">border: 1px solid</string>
@@ -90,17 +90,17 @@
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
+         <item row="4" column="0">
           <widget class="QLabel" name="label_6">
            <property name="text">
             <string>Ping [ms]</string>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
+         <item row="3" column="1">
           <widget class="QLineEdit" name="ip_addr"/>
          </item>
-         <item row="3" column="1">
+         <item row="4" column="1">
           <widget class="QLabel" name="eth_frame_type">
            <property name="styleSheet">
             <string notr="true">border: 1px solid</string>
@@ -110,14 +110,14 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
+         <item row="6" column="0">
           <widget class="QLabel" name="label">
            <property name="text">
             <string>FPS</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="6" column="1">
           <widget class="QLabel" name="fps_label">
            <property name="styleSheet">
             <string notr="true">border: 1px solid</string>
@@ -127,14 +127,17 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="portField"/>
+         </item>
+         <item row="7" column="0">
           <widget class="QLabel" name="label_2">
            <property name="text">
             <string>Rozdzielczość</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="7" column="1">
           <widget class="QLabel" name="resolutionLabel">
            <property name="styleSheet">
             <string notr="true">border: 1px solid</string>
@@ -144,10 +147,7 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="portField"/>
-         </item>
-         <item row="4" column="1">
+         <item row="5" column="1">
           <widget class="QLabel" name="eth_frame_len">
            <property name="styleSheet">
             <string notr="true">border: 1px solid</string>
@@ -157,11 +157,21 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
+         <item row="5" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;IIlość utraconych ramek wideo[%]
 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="nameField"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="nameCheckBox">
+           <property name="text">
+            <string>Nazwa strumienia</string>
            </property>
           </widget>
          </item>
@@ -301,7 +311,7 @@
      <x>0</x>
      <y>0</y>
      <width>823</width>
-     <height>19</height>
+     <height>27</height>
     </rect>
    </property>
   </widget>

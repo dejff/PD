@@ -30,7 +30,7 @@ private slots:
     void checkThreads();
     void checkBoxClicked();
     void portCheckBoxClicked();
-
+	void nameCheckBoxClicked();
 private:
     QImage img;
     QString port, url, credentials, absFilePath;

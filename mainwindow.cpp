@@ -21,13 +21,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->loginField->setDisabled(true);
     ui->passwordField->setDisabled(true);
     ui->protocolType->addItems(connectionTypes);
-    startShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_R), this);  //ustawienie skrótu na rozpoczęcie skanowania
+    ui->nameField->setDisabled(true);
+    ui->nameCheckBox->setChecked(false);
+    startShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this); //ustawienie skrótu na rozpoczęcie skanowania
     stopShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_S), this);   //ustawienie skrótu na zakończenie skanowania
     connect(startShortcut, SIGNAL(activated()),this, SLOT(on_start_cap_button_clicked()));  //połączenie skrtótu klawiszowego z przyciskiem "Zacznij przechwytywanie"
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
     connect(ui->checkBox, SIGNAL(toggled(bool)), this, SLOT(checkBoxClicked()));
     connect(ui->portCheckBox, SIGNAL(toggled(bool)), this, SLOT(portCheckBoxClicked()));
-    ui->passwordField->setEchoMode(QLineEdit::Password);        //ustawianie pola hasła
+    connect(ui->nameCheckBox, SIGNAL(toggled(bool)), this, SLOT(nameCheckBoxClicked()));
+    ui->passwordField->setEchoMode(QLineEdit::Password);                                                            //ustawianie pola hasła
     ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
     ui->passwordField->setPlaceholderText("Hasło");
     ui->loginField->setPlaceholderText("Login");
@@ -82,6 +85,10 @@ void MainWindow::on_start_cap_button_clicked()
             url+=credentials+ui->ip_addr->text();
         }
 
+        if(ui->nameCheckBox->isChecked()){
+            url += "/" + ui->nameField->text();
+        }
+
         ui->start_cap_button->setEnabled(false);
         ui->stop_cap_button->setEnabled(true);
         //inicjalizacja wątków
@@ -93,6 +100,19 @@ void MainWindow::on_start_cap_button_clicked()
         videoThread->start();
         opencvThread->start();
         ui->status_label->setText("Program działa");
+        
+        if(ui->nameCheckBox->isChecked()){
+            ui->nameField->setDisabled(true);
+        }
+
+        if(ui->checkBox->isChecked()){
+            ui->passwordField->setDisabled(true);
+            ui->loginField->setDisabled(true);
+        }
+
+        ui->protocolType->setDisabled(true);
+        ui->ip_addr->setDisabled(true);
+        ui->portField->setDisabled(true);
 
         //uruchomienie funkcji sprawdzającej stan wątków
         timer->start(200);
@@ -154,6 +174,19 @@ void MainWindow::on_stop_cap_button_clicked()
     }
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap(absFilePath));
+
+    if(ui->nameCheckBox->isChecked()){
+        ui->nameField->setDisabled(false);
+    }
+
+    if(ui->checkBox->isChecked()){
+        ui->passwordField->setDisabled(false);
+        ui->loginField->setDisabled(false);
+    }
+
+    ui->protocolType->setDisabled(false);
+    ui->ip_addr->setDisabled(false);
+    ui->portField->setDisabled(false);
 }
 
 /**
@@ -242,4 +275,13 @@ void MainWindow::portCheckBoxClicked()
     }else{
         ui->listenPort->setDisabled(false);
     }
+}
+
+void MainWindow::nameCheckBoxClicked()
+{
+	if(!ui->nameCheckBox->isChecked()){
+		ui->nameField->setDisabled(true);
+	}else{
+		ui->nameField->setDisabled(false);
+	}
 }
