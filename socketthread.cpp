@@ -7,7 +7,7 @@ SocketThread::SocketThread(Ui::MainWindow *ui)
 
 void SocketThread::run()
 {
-    exec();
+//    exec();
 }
 
 void SocketThread::listen()

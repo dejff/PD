@@ -148,12 +148,11 @@ void MainWindow::on_stop_cap_button_clicked()
         delete opencvThread;
         qDebug()<<"opencv usunięty";
     }
-
-    //metoda ustawiająca obrazek braku obrazu po zerwaniu/zatrzymaniu połączenia
     if(opencvThread!=NULL){
         ui->videoLabel->setPixmap(QPixmap(absFilePath));
     }
-}
+    ui->videoLabel->setScaledContents(true);
+    ui->videoLabel->setPixmap(QPixmap::fromImage(img));
 
 /**
  * @brief MainWindow::sendFrame

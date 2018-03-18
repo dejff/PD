@@ -33,6 +33,7 @@ private slots:
 //    void ping();
 
 private:
+    const QString IMAGE_PATH = "./file.jpg";
     QImage img;
     QString port, url, credentials, absFilePath;
     Ui::MainWindow *ui;

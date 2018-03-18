@@ -58,17 +58,12 @@ void OpencvThread::run()
 void OpencvThread::capture()
 {
     if(cap.isOpened()){
-        qDebug()<<"capture";
         cap.read(frame);
         img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
         ui->videoLabel->setScaledContents(true);
         ui->videoLabel->setPixmap(QPixmap::fromImage(img));
         ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
         ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
-    }
-    else
-    {
-        qDebug()<<"cap not opened";
     }
 }
 
