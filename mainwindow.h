@@ -19,7 +19,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    const QString IMAGE_PATH = "./file.jpg";
+    const QString IMAGE_PATH = "./no_video.jpg";
     explicit MainWindow(QWidget *parent = 0);
     void sendFrame(int code);
     ~MainWindow();
@@ -30,10 +30,8 @@ private slots:
     void checkThreads();
     void checkBoxClicked();
     void portCheckBoxClicked();
-//    void ping();
 
 private:
-    const QString IMAGE_PATH = "./file.jpg";
     QImage img;
     QString port, url, credentials, absFilePath;
     Ui::MainWindow *ui;

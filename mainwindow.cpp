@@ -149,10 +149,12 @@ void MainWindow::on_stop_cap_button_clicked()
         qDebug()<<"opencv usunięty";
     }
     if(opencvThread!=NULL){
+      qDebug()<<absFilePath;
         ui->videoLabel->setPixmap(QPixmap(absFilePath));
     }
     ui->videoLabel->setScaledContents(true);
-    ui->videoLabel->setPixmap(QPixmap::fromImage(img));
+    ui->videoLabel->setPixmap(QPixmap(absFilePath));
+}
 
 /**
  * @brief MainWindow::sendFrame
@@ -169,8 +171,8 @@ void MainWindow::sendFrame(int code)
  * @brief MainWindow::checkThreads
  * Funkcja monitorująca stan poszczególnych wątków, i jeśli któryś z nich zostanie zakończony to wysłany zostanie komunikat o błędzie
  */
-void MainWindow::checkThreads(){
-//void MainWindow::checkThreads(){
+void MainWindow::checkThreads()
+{
 
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
@@ -211,17 +213,15 @@ void MainWindow::checkThreads(){
                 msg.exec();
             }
         }
-
-
     }
-
 }
 
 /**
  * @brief MainWindow::checkBoxClicked
  * Metoda aktuwująca i dezaktywująca pola hasła i loginu
  */
-void MainWindow::checkBoxClicked(){
+void MainWindow::checkBoxClicked()
+{
     if(!ui->checkBox->isChecked()){
         ui->passwordField->setDisabled(true);
         ui->loginField->setDisabled(true);
@@ -235,7 +235,8 @@ void MainWindow::checkBoxClicked(){
  * @brief MainWindow::portCheckBoxClicked
  * Metoda aktywująca i dezaktywująca pole portu nasłuchującego
  */
-void MainWindow::portCheckBoxClicked(){
+void MainWindow::portCheckBoxClicked()
+{
     if(!ui->portCheckBox->isChecked()){
         ui->listenPort->setDisabled(true);
     }else{

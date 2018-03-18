@@ -36,7 +36,7 @@ void OpencvThread::run()
     cap.open(url.toUtf8().data());
     connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
     frameTimer.start(30);
-
+	
     if(isStopPushed)
     {
         frameTimer.stop();
@@ -46,9 +46,7 @@ void OpencvThread::run()
 //            ui->videoLabel->setText("Brak sygnału wideo");
 //        }
     }
-    qDebug()<<"przed exec";
     exec();
-    qDebug()<<"po exec";
 }
 
 /**
