@@ -1,5 +1,7 @@
 #include "socketthread.h"
 
+using namespace std;
+
 SocketThread::SocketThread(Ui::MainWindow *ui)
 {
     this->ui = ui;
@@ -7,10 +9,45 @@ SocketThread::SocketThread(Ui::MainWindow *ui)
 
 void SocketThread::run()
 {
+    waitForRequest();
 //    exec();
 }
 
-void SocketThread::listen()
+void SocketThread::waitForRequest()
 {
+    socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+    if(socket_descriptor==0){
+            qDebug()<<"Błąd tworzenia deksryptora socketu - socket";
+            exit(EXIT_FAILURE);
+    }
+    if(setsockopt(socket_descriptor, SOL_SOCKET,
+        SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))){
+            qDebug()<<"Błąd ustawiania opcji socketu - setsocketopt";
+            exit(EXIT_FAILURE);
+    }
 
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(PORT); //później podłączyć możliwość przesyłania własnego portu, na razie jest na sztywni 58 
+
+    if(bind(socket_descriptor, (struct sockaddr *)&server, sizeof(server)<0)){
+        qDebug()<<"Błąd bindowania socketa do portu - bind";
+        exit(EXIT_FAILURE);
+    }
+
+    if(listen (socket_descriptor, 3)<0){
+        qDebug()<<"Błąd podczas nasłuchiwania - listen";
+        exit(EXIT_FAILURE);
+    }
+
+    if((new_socket = accept(socket_descriptor, (struct sockaddr *)&server, (socklen_t*)&address_len))<0){
+        qDebug()<<"Wystąpił błąd podczas nawiązywania połączenia";
+        exit(EXIT_FAILURE);
+    }
+
+    valread = read(new_socket, buffer, 1024);
+
+    qDebug()<<buffer;
+
+    shutdown(socket_descriptor, SHUT_RDWR);
 }

@@ -1,7 +1,9 @@
 #include "opencvthread.h"
 #include <QDebug>
+#include <stdio.h>
 
 using namespace cv;
+using namespace std;
 
 OpencvThread::OpencvThread()
 {
@@ -14,9 +16,6 @@ OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
     this->ui = ui;
     qDebug()<<"Rozpoczynam działanie";
     isStopPushed=false;
-//    Mat connectionErrorImg = imread("../no_video.jpg", IMREAD_COLOR);
-//    ui->videoLabel->setScaledContents(true);
-//    ui->videoLabel->setPixmap(QPixmap::fromImage(connectionErrorImg));
 }
 
 OpencvThread::~OpencvThread()
@@ -34,9 +33,15 @@ void OpencvThread::run()
     Mat frame;
     QTimer frameTimer;
     cap.open(url.toUtf8().data());
-    connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
-    frameTimer.start(30);
-	
+    cout<<"url: "<<url.toUtf8().data();
+    if(cap.isOpened()){
+        qDebug()<<"cap otwarty";
+        connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
+        frameTimer.start(30);
+    }else{
+        qDebug()<<"cap nie otawrty";
+    }
+
     if(isStopPushed)
     {
         frameTimer.stop();
@@ -55,13 +60,17 @@ void OpencvThread::run()
  */
 void OpencvThread::capture()
 {
+    qDebug()<<"jestem w capture, cap: "+cap.isOpened();
     if(cap.isOpened()){
+        qDebug()<<"działa, cap otwarty";
         cap.read(frame);
         img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
         ui->videoLabel->setScaledContents(true);
         ui->videoLabel->setPixmap(QPixmap::fromImage(img));
         ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
         ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
+    }else{
+        qDebug()<<"nie działa, cap zamknięty";
     }
 }
 

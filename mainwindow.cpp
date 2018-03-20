@@ -89,6 +89,8 @@ void MainWindow::on_start_cap_button_clicked()
             url += "/" + ui->nameField->text();
         }
 
+        qDebug()<<"url: "+url;
+
         ui->start_cap_button->setEnabled(false);
         ui->stop_cap_button->setEnabled(true);
         //inicjalizacja wątków

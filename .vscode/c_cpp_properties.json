@@ -35,10 +35,11 @@
                 "/usr/include/x86_64-linux-gnu",
                 "/usr/include",
                 "${workspaceRoot}",
-                "/usr/include/x86_64-linux-gnu/qt5/QtWidgets",
-                "/usr/include/x86_64-linux-gnu/qt5/QtCore",
                 "/usr/include/x86_64-linux-gnu/qt5",
-                "${workspaceRoot}/build/release"
+                "/home/dawid/Qt/5.10.1/gcc_64/lib",
+                "${workspaceRoot}/build/release",
+                "/home/dawid/Qt/5.10.1/gcc_64/include",
+                "/home/dawid/Qt/5.10.1/gcc_64/include/QtCore"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -51,6 +52,7 @@
                     "/usr/local/include",
                     "/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed",
                     "/usr/include/x86_64-linux-gnu",
+                    "/home/dawid/Qt/5.10.1/gcc_64/include",
                     "/usr/include",
                     "${workspaceRoot}"
                 ],
