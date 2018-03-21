@@ -14,7 +14,6 @@ OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
 {
     this->url = url;
     this->ui = ui;
-    qDebug()<<"Rozpoczynam działanie";
     isStopPushed=false;
 }
 
@@ -35,7 +34,6 @@ void OpencvThread::run()
     cap.open(url.toUtf8().data());
     cout<<"url: "<<url.toUtf8().data();
     if(cap.isOpened()){
-        qDebug()<<"cap otwarty";
         connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
         frameTimer.start(30);
     }else{
@@ -60,9 +58,7 @@ void OpencvThread::run()
  */
 void OpencvThread::capture()
 {
-    qDebug()<<"jestem w capture, cap: "+cap.isOpened();
     if(cap.isOpened()){
-        qDebug()<<"działa, cap otwarty";
         cap.read(frame);
         img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
         ui->videoLabel->setScaledContents(true);

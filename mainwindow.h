@@ -7,6 +7,7 @@
 #include "pingthread.h"
 #include "videothread.h"
 #include "opencvthread.h"
+#include "socketthread.h"
 #include <QTimer>
 #include <QMessageBox>
 
@@ -40,6 +41,7 @@ private:
     PingThread *pingThread;
     VideoThread *videoThread;
     OpencvThread *opencvThread;
+    SocketThread *socketThread;
     QTimer *timer;
 };
 

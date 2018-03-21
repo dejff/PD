@@ -97,10 +97,12 @@ void MainWindow::on_start_cap_button_clicked()
         pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
         videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
         opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
+        socketThread = new SocketThread(ui);
         //uruchomienie wątków
         pingThread->start();
         videoThread->start();
         opencvThread->start();
+        socketThread->start();
         ui->status_label->setText("Program działa");
         
         if(ui->nameCheckBox->isChecked()){
@@ -136,6 +138,14 @@ void MainWindow::on_stop_cap_button_clicked()
 
     ui->stop_cap_button->setEnabled(false);
     ui->start_cap_button->setEnabled(true);
+
+    //zakończenie wątka nasłuchującego żądań z sieci
+    if(socketThread->isRunning()){
+        socketThread->quit();
+        socketThread->wait();
+        delete socketThread;
+    }
+
     //zakończenie wątka pingującego urządzenie
     if(pingThread->isRunning()){
         pingThread->stopPing();

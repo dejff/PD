@@ -23,9 +23,10 @@ public:
 private:
     int opt = 1;
     Ui::MainWindow *ui;
-    int socket_descriptor, address_len, buffer_len, new_socket, valread;
+    int socket_descriptor, new_socket, valread;
     char buffer[1024] = {0};
     struct sockaddr_in server;
+    int address_len = sizeof(server);
 };
 
 #endif // SOCKETTHREAD_H
