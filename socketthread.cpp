@@ -15,11 +15,12 @@ void SocketThread::waitForRequest()
 {
     qDebug()<<"Serwer nasłuchuje";
     char hello[] = "Siema z serwera";
-    socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-    if(socket_descriptor==0){
+    socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);		//utworzenie deskryptora gniazda
+    if(socket_descriptor<0){
             qDebug()<<"Błąd tworzenia deksryptora socketu - socket";
             exit(EXIT_FAILURE);
     }
+
 
     if(setsockopt(socket_descriptor, SOL_SOCKET,
         SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))){
@@ -27,10 +28,11 @@ void SocketThread::waitForRequest()
             exit(EXIT_FAILURE);
     }
 
+    portnumber = atoi((ui->portField->text()).toUtf8().data());
 
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(PORT); //później podłączyć możliwość przesyłania własnego portu, na razie jest na sztywni 58 
+    server.sin_port = htons(portnumber); //później podłączyć możliwość przesyłania własnego portu, na razie jest na sztywni 58
 
     qDebug()<<bind(socket_descriptor, (struct sockaddr *)&server, sizeof(server));
     qDebug()<<sizeof(server);

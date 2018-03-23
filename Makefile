@@ -341,6 +341,7 @@ build/release/moc_mainwindow.cpp: pingthread.h \
 		videothread.h \
 		build/release/ui_mainwindow.h \
 		opencvthread.h \
+		socketthread.h \
 		mainwindow.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I'/home/dawid/System nadzoru połączenia wideo' -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o build/release/moc_mainwindow.cpp
 
@@ -381,14 +382,16 @@ build/release/main.o: main.cpp mainwindow.h \
 		pingthread.h \
 		videothread.h \
 		build/release/ui_mainwindow.h \
-		opencvthread.h
+		opencvthread.h \
+		socketthread.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/main.o main.cpp
 
 build/release/mainwindow.o: mainwindow.cpp mainwindow.h \
 		pingthread.h \
 		videothread.h \
 		build/release/ui_mainwindow.h \
-		opencvthread.h
+		opencvthread.h \
+		socketthread.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/mainwindow.o mainwindow.cpp
 
 build/release/pingthread.o: pingthread.cpp pingthread.h
