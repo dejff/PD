@@ -9,7 +9,7 @@
 
 using namespace cv;
 
-class OpencvThread: public QThread
+class OpencvThread: public QObject
 {
     Q_OBJECT
 

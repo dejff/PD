@@ -38,7 +38,21 @@ MainWindow::MainWindow(QWidget *parent) :
     absFilePath = file.absoluteFilePath();
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap(absFilePath));                            //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
+
+    pingThread = new PingThread;
+    pingThread->moveToThread(&pingThrd);
+
+    //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW
+    connect(&pingThrd, &QThread::finished, pingThread, &QObject::deleteLater);
+
+    //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
+    connect(this, &MainWindow::capturePing, pingThrd, &PingThread::sniff());
+
+    //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
+    connect(&pingThread, &PingThread::returnMessage, this, &MainWindow::capturePing);
+
     timer = new QTimer(this);
+    pingTimer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
 }
 
@@ -91,22 +105,13 @@ void MainWindow::on_start_cap_button_clicked()
 
         qDebug()<<"url: "+url;
 
+        //aktywacja przycisku zatrzymywania protramu i wyłączenie przycisku uruchamiania programu - nie można dwa razy uruchomić przechwytywania
         ui->start_cap_button->setEnabled(false);
         ui->stop_cap_button->setEnabled(true);
-        //inicjalizacja wątków
-        pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
-//        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
-//        opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
-//        socketThread = new SocketThread(ui);
-        //uruchomienie wątków
-        QTimer pingTimer
-        pingThread->start();
 
-//        videoThread->start();
-//        opencvThread->start();
-//        socketThread->start();
-        ui->status_label->setText("Program działa");
-        
+
+        //Dezaktywacja wszystkich pól - nie można zmienić parametrów przechwytywania podczas działania programu
+
         if(ui->nameCheckBox->isChecked()){
             ui->nameField->setDisabled(true);
         }
@@ -119,9 +124,23 @@ void MainWindow::on_start_cap_button_clicked()
         ui->protocolType->setDisabled(true);
         ui->ip_addr->setDisabled(true);
         ui->portField->setDisabled(true);
+        //URUCHAMIANIE WSZYSTKICH WĄTKÓW
+
+        //inicjalizacja wątków
+//        pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
+//        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
+//        opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
+//        socketThread = new SocketThread(ui);
+//        pingThread->start();
+
+//        videoThread->start();
+//        opencvThread->start();
+//        socketThread->start();
+        ui->status_label->setText("Program działa");
+        capturePing(ui->ip_addr->text());
 
         //uruchomienie funkcji sprawdzającej stan wątków
-        timer->start(200);
+//        timer->start(200);
     }
 
 }

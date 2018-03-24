@@ -28,10 +28,14 @@ public:
 private slots:
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
-    void checkThreads();
+    void checkThreads();		//dostosować do poprawek w wątkach
     void checkBoxClicked();
     void portCheckBoxClicked();
-	void nameCheckBoxClicked();
+    void nameCheckBoxClicked();
+
+public slots:
+    void checkPing(const QString &);
+
 private:
     QImage img;
     QString port, url, credentials, absFilePath;
@@ -39,10 +43,16 @@ private:
     QShortcut *startShortcut;
     QShortcut *stopShortcut;
     PingThread *pingThread;
-    VideoThread *videoThread;
-    OpencvThread *opencvThread;
-    SocketThread *socketThread;
-    QTimer *timer;
+//    VideoThread *videoThread;
+//    OpencvThread *opencvThread;
+//    SocketThread *socketThread;
+    QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
+    QThread pingThrd, openCvThrd, videoThrd, socketThrd;
+
+signals:
+    //SYGNAŁY PRZESYŁAJĄCE SYGNAŁY DO WĄTKÓW PODCZAS INICJALIZACJI
+    void capturePing(const QString &);
+
 };
 
 #endif // MAINWINDOW_H

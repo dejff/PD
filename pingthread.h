@@ -19,10 +19,13 @@ private:
     QTimer timer;
     QString ip;
     pcap_t *handle;
+    QString message;
     static void got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
-private slots:
-    void sniff();
+public slots:
+    void sniff(const Qstring &ipAddr);
 
+signals:
+    void returnMessage(const QString result);
 };
 
 #endif // PINGTHREAD_H

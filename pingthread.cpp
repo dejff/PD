@@ -9,23 +9,22 @@ PingThread::PingThread(QString ip)
 
 PingThread::~PingThread(){
     qDebug()<<"destruktor ping thread";
-//    timer.stop();
 }
 
 
-void PingThread::run()
-{
-//    timer = new QTimer(this);       //timer odmierzający czas pomiędzy kolejnymi pingami
-    connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
-//    timer.start(500);             //uruchomienie timera, z interwałem 5s
-    exec();
-}
+//void PingThread::run()
+//{
+////    timer = new QTimer(this);       //timer odmierzający czas pomiędzy kolejnymi pingami
+//    connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
+////    timer.start(500);             //uruchomienie timera, z interwałem 5s
+//    exec();
+//}
 
 /**
  * @brief PingThread::ping
  * Metoda pingująca adres ip, wprowadzony w GUI
  */
-void PingThread::sniff()
+void PingThread::sniff(const Qstring &ipAddr)
 {
     int pingCount=0;
     struct bpf_program fp;	//skompilowane wyrażenie
@@ -68,20 +67,29 @@ void PingThread::sniff()
     //przechwytywanie pakietów
     if(pcap_dispatch(handle,0,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
         qDebug()<<"Zerwanie połączenia";
-        QThread::quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
+        returnMessage("Błąd połączenia");
+//        QThread::quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
     }
 
     pcap_close(handle);
 
 }
 
+/**
+ * @brief PingThread::stopPing
+ * Metoda uruchamiana podczas kończenia wątku
+ */
 void PingThread::stopPing()
 {
     qDebug()<<"stop ping";
-//    pcap_close(handle);
+    pcap_close(handle);
 }
+
+void PingThread::returnMessage(const QString result);
+
 
 void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
+    returnMessage("OK");
 //    qDebug()<<"pakiet:";
 }
