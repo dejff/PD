@@ -28,13 +28,13 @@ public:
 private slots:
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
-    void checkThreads();		//dostosować do poprawek w wątkach
+    void checkThreads();		//dostosować do poprawek w wątkach - może będzie potrzeba sprawdzania tylko jednej zmiennej
     void checkBoxClicked();
     void portCheckBoxClicked();
     void nameCheckBoxClicked();
 
 public slots:
-    void checkPing(const QString &);
+    void checkPing(QString string);
 
 private:
     QImage img;

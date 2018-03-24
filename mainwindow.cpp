@@ -43,13 +43,13 @@ MainWindow::MainWindow(QWidget *parent) :
     pingThread->moveToThread(&pingThrd);
 
     //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW
-    connect(&pingThrd, &QThread::finished, pingThread, &QObject::deleteLater);
+    connect(&pingThrd, SIGNAL(finished()), pingThread, SLOT(stopPing()));
 
     //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
-    connect(this, &MainWindow::capturePing, pingThrd, &PingThread::sniff());
+    connect(this, SIGNAL(capturePing(QString)), pingThread, SLOT(sniff(QString))) ;
 
     //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
-    connect(&pingThread, &PingThread::returnMessage, this, &MainWindow::capturePing);
+    connect(pingThread, SIGNAL(returnMessage(QString)), this, SLOT(checkPing(QString)));
 
     timer = new QTimer(this);
     pingTimer = new QTimer(this);
@@ -103,12 +103,10 @@ void MainWindow::on_start_cap_button_clicked()
             url += "/" + ui->nameField->text();
         }
 
-        qDebug()<<"url: "+url;
 
         //aktywacja przycisku zatrzymywania protramu i wyłączenie przycisku uruchamiania programu - nie można dwa razy uruchomić przechwytywania
         ui->start_cap_button->setEnabled(false);
         ui->stop_cap_button->setEnabled(true);
-
 
         //Dezaktywacja wszystkich pól - nie można zmienić parametrów przechwytywania podczas działania programu
 
@@ -125,7 +123,8 @@ void MainWindow::on_start_cap_button_clicked()
         ui->ip_addr->setDisabled(true);
         ui->portField->setDisabled(true);
         //URUCHAMIANIE WSZYSTKICH WĄTKÓW
-
+        capturePing(ui->ip_addr->text());
+        pingThrd.start();
         //inicjalizacja wątków
 //        pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
 //        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
@@ -137,7 +136,7 @@ void MainWindow::on_start_cap_button_clicked()
 //        opencvThread->start();
 //        socketThread->start();
         ui->status_label->setText("Program działa");
-        capturePing(ui->ip_addr->text());
+//        capturePing(ui->ip_addr->text());
 
         //uruchomienie funkcji sprawdzającej stan wątków
 //        timer->start(200);
@@ -168,13 +167,16 @@ void MainWindow::on_stop_cap_button_clicked()
 //    }
 
     //zakończenie wątka pingującego urządzenie
-    if(pingThread->isRunning()){
-        pingThread->stopPing();
+    if(pingThrd.isRunning()){
+        qDebug()<<"tu też stop";
+        pingThrd.quit();
+        pingThrd.wait();
+//        pingThread->stopPing();
         qDebug()<<"ping thr. zamykanie";
-        pingThread->quit();
-        pingThread->wait();
+//        pingThread->quit();
+//        pingThread->wait();
         qDebug()<<"ping thr. zamknięty";
-        delete pingThread;
+//        delete pingThread;
         qDebug()<<"usunięte ping";
 
     }
@@ -320,4 +322,9 @@ void MainWindow::nameCheckBoxClicked()
 	}else{
 		ui->nameField->setDisabled(false);
 	}
+}
+
+void MainWindow::checkPing(QString string)
+{
+    qDebug()<<string;
 }

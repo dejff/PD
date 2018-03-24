@@ -1,31 +1,22 @@
 #include "pingthread.h"
 #include <QDebug>
 
+PingThread::PingThread(){
 
-PingThread::PingThread(QString ip)
-{
-    this->ip = ip;
 }
 
 PingThread::~PingThread(){
-    qDebug()<<"destruktor ping thread";
+
 }
-
-
-//void PingThread::run()
-//{
-////    timer = new QTimer(this);       //timer odmierzający czas pomiędzy kolejnymi pingami
-//    connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
-////    timer.start(500);             //uruchomienie timera, z interwałem 5s
-//    exec();
-//}
 
 /**
  * @brief PingThread::ping
  * Metoda pingująca adres ip, wprowadzony w GUI
  */
-void PingThread::sniff(const Qstring &ipAddr)
+void PingThread::sniff(const QString ip)
 {
+
+    qDebug()<<"Wątek działa";
     int pingCount=0;
     struct bpf_program fp;	//skompilowane wyrażenie
     bpf_u_int32 mask;		/* maska podsieci */
@@ -39,7 +30,6 @@ void PingThread::sniff(const Qstring &ipAddr)
     //otwieranie domyślnej karty sieciowej
     dev = pcap_lookupdev(errbuf);
 
-//    pcap_t *handle;
     QString filter_string = "icmp and ip src "+ip;
     const char *filter_exp = filter_string.toUtf8().data();
 
@@ -71,8 +61,6 @@ void PingThread::sniff(const Qstring &ipAddr)
 //        QThread::quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
     }
 
-    pcap_close(handle);
-
 }
 
 /**
@@ -81,15 +69,13 @@ void PingThread::sniff(const Qstring &ipAddr)
  */
 void PingThread::stopPing()
 {
+    returnMessage("ZATRZYMANO");
     qDebug()<<"stop ping";
     pcap_close(handle);
 }
 
-void PingThread::returnMessage(const QString result);
-
-
 void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    returnMessage("OK");
+//    emit returnMessage("OK");
 //    qDebug()<<"pakiet:";
 }

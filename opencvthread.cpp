@@ -27,35 +27,35 @@ OpencvThread::~OpencvThread()
 //    }
 }
 
-void OpencvThread::run()
-{
-    Mat frame;
-    QTimer frameTimer;
-    cap.open(url.toUtf8().data());
-    cout<<"url: "<<url.toUtf8().data();
-    if(cap.isOpened()){
-        connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
-        frameTimer.start(30);
-    }else{
-        cap.release();
-        frameTimer.stop();
-        qDebug()<<"cap nie otawrty";
-        QErrorMessage msg;
-        msg.showMessage("Błąd połączenia wideo, proszę aprawdzić poświadczenia");
-        QThread::quit();
-    }
-
-    if(isStopPushed)
-    {
-        frameTimer.stop();
-        cap.release();
+//void OpencvThread::run()
+//{
+//    Mat frame;
+//    QTimer frameTimer;
+//    cap.open(url.toUtf8().data());
+//    cout<<"url: "<<url.toUtf8().data();
+//    if(cap.isOpened()){
+//        connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
+//        frameTimer.start(30);
+//    }else{
+//        cap.release();
+//        frameTimer.stop();
+//        qDebug()<<"cap nie otawrty";
+//        QErrorMessage msg;
+//        msg.showMessage("Błąd połączenia wideo, proszę aprawdzić poświadczenia");
 //        QThread::quit();
-//        if(!frameTimer.isActive()){
-//            ui->videoLabel->setText("Brak sygnału wideo");
-//        }
-    }
-    exec();
-}
+//    }
+
+//    if(isStopPushed)
+//    {
+//        frameTimer.stop();
+//        cap.release();
+////        QThread::quit();
+////        if(!frameTimer.isActive()){
+////            ui->videoLabel->setText("Brak sygnału wideo");
+////        }
+//    }
+//    exec();
+//}
 
 /**
  * @brief OpencvThread::capture

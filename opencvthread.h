@@ -17,7 +17,7 @@ public:
     OpencvThread();
     OpencvThread(QString u1rl, Ui::MainWindow *ui);
     ~OpencvThread();
-    void run() override;
+//    void run() override;
     void stopCapture();
 private:
     bool isStopPushed;
