@@ -15,9 +15,9 @@ PingThread::~PingThread(){
 
 void PingThread::run()
 {
-//    QTimer timer;       //timer odmierzający czas pomiędzy kolejnymi pingami
+//    timer = new QTimer(this);       //timer odmierzający czas pomiędzy kolejnymi pingami
     connect(&timer, SIGNAL(timeout()), this, SLOT(sniff()), Qt::DirectConnection);     //połączenie timera z funkcją
-    timer.start(500);             //uruchomienie timera, z interwałem 5s
+//    timer.start(500);             //uruchomienie timera, z interwałem 5s
     exec();
 }
 

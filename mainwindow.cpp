@@ -95,14 +95,16 @@ void MainWindow::on_start_cap_button_clicked()
         ui->stop_cap_button->setEnabled(true);
         //inicjalizacja wątków
         pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
-        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
-        opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
-        socketThread = new SocketThread(ui);
+//        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
+//        opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
+//        socketThread = new SocketThread(ui);
         //uruchomienie wątków
+        QTimer pingTimer
         pingThread->start();
-        videoThread->start();
-        opencvThread->start();
-        socketThread->start();
+
+//        videoThread->start();
+//        opencvThread->start();
+//        socketThread->start();
         ui->status_label->setText("Program działa");
         
         if(ui->nameCheckBox->isChecked()){
@@ -140,11 +142,11 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->start_cap_button->setEnabled(true);
 
     //zakończenie wątka nasłuchującego żądań z sieci
-    if(socketThread->isRunning()){
-        socketThread->quit();
-        socketThread->wait();
-        delete socketThread;
-    }
+//    if(socketThread->isRunning()){
+//        socketThread->quit();
+//        socketThread->wait();
+//        delete socketThread;
+//    }
 
     //zakończenie wątka pingującego urządzenie
     if(pingThread->isRunning()){
@@ -158,32 +160,32 @@ void MainWindow::on_stop_cap_button_clicked()
 
     }
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
-    if(videoThread->isRunning()){
-        qDebug()<<"video thr. zamykanie";
-        videoThread->stopVideo();
-        videoThread->quit();
-        videoThread->wait();
-        qDebug()<<"video thr. zamknięty";
-//        delete videoThread;
-        qDebug()<<"usunięte video";
-    }
+//    if(videoThread->isRunning()){
+//        qDebug()<<"video thr. zamykanie";
+//        videoThread->stopVideo();
+//        videoThread->quit();
+//        videoThread->wait();
+//        qDebug()<<"video thr. zamknięty";
+////        delete videoThread;
+//        qDebug()<<"usunięte video";
+//    }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
-    if(opencvThread->isRunning()){
-        qDebug()<<"opencv thr. zamykanie";
-        opencvThread->stopCapture();
-        qDebug()<<"Wychodzenie z opencv thr.";
-        opencvThread->quit();
-        qDebug()<<"Czekanie na zamknięcie opencvthread test qmake";
-        opencvThread->wait();
-        qDebug()<<"opencv thr. zamknięty";
-        delete opencvThread;
-        qDebug()<<"opencv usunięty";
-    }
-    if(opencvThread!=NULL){
-      qDebug()<<absFilePath;
-        ui->videoLabel->setPixmap(QPixmap(absFilePath));
-    }
+//    if(opencvThread->isRunning()){
+//        qDebug()<<"opencv thr. zamykanie";
+//        opencvThread->stopCapture();
+//        qDebug()<<"Wychodzenie z opencv thr.";
+//        opencvThread->quit();
+//        qDebug()<<"Czekanie na zamknięcie opencvthread test qmake";
+//        opencvThread->wait();
+//        qDebug()<<"opencv thr. zamknięty";
+//        delete opencvThread;
+//        qDebug()<<"opencv usunięty";
+//    }
+//    if(opencvThread!=NULL){
+//      qDebug()<<absFilePath;
+//        ui->videoLabel->setPixmap(QPixmap(absFilePath));
+//    }
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap(absFilePath));
 
@@ -210,6 +212,9 @@ void MainWindow::sendFrame(int code)
 {
     //do dokończenia
     qDebug()<<"code sent: "+QString::number(code);
+//    qDebug()<<"opencv "+QString(opencvThread->isFinished() ? "false" : "true")+"\n";
+//    qDebug()<<"ping "+QString(pingThread->isFinished() ? "false" : "true")+"\n";
+//    qDebug()<<"sock "+QString(socketThread->isFinished() ? "false" : "true")+"\n";
 }
 
 /**
@@ -222,43 +227,43 @@ void MainWindow::checkThreads()
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
     //na podstawie tego jaki wątek został zatrzymany zostanie wyemitowany odpowiedni pakiet z informacją o błędzie
-    if(pingThread->isFinished() || videoThread->isFinished() || opencvThread->isFinished()){
+//    if(pingThread->isFinished() || videoThread->isFinished() || opencvThread->isFinished()){
 
         QMessageBox msg;
-        qDebug()<<"opencv thread work: "+QString(opencvThread->isFinished() ? "true" : "false")+"\n";
-        timer->stop();
-        if(pingThread->isFinished()){
-            //błąd polecenia ping, błąd połączenia
-//            qDebug()<<"błąd połączenia";
-            msg.setText("Brak połączenia z urządzeniem");
-            sendFrame(1);
-            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-            msg.exec();
-        }else if (videoThread->isFinished()) {
-            //błąd połączenia video (libavc) - pobieranie parametrów strumienia wideo
-//            qDebug()<<"błąd video thread";
-            msg.setText("Problem z połączeniem");
-            sendFrame(2);
-            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-            msg.exec();
-        }else{
-            //błąd połączenia video (opencv) - sprawdzanie czy wystąpiło zamrożenie obrazu
-//            qDebug()<<"błąd open cv";
-            if(pingThread->isFinished()){
-                msg.setText("Problem z połączeniem");
-                sendFrame(1);
-                opencvThread->quit();
-                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-                msg.exec();
-            }else{
-                opencvThread->quit();
-                msg.setText("Wykryto zamrożenie obrazu");
-                sendFrame(3);
-                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-                msg.exec();
-            }
-        }
-    }
+//        qDebug()<<"opencv thread work: "+QString(opencvThread->isFinished() ? "false" : "true")+"\n";
+//        timer->stop();
+//        if(pingThread->isFinished()){
+//            //błąd polecenia ping, błąd połączenia
+////            qDebug()<<"błąd połączenia";
+//            msg.setText("Brak połączenia z urządzeniem");
+//            sendFrame(1);
+//            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+//            msg.exec();
+//        }else if (videoThread->isFinished()) {
+//            //błąd połączenia video (libavc) - pobieranie parametrów strumienia wideo
+////            qDebug()<<"błąd video thread";
+//            msg.setText("Problem z połączeniem");
+//            sendFrame(2);
+//            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+//            msg.exec();
+//        }else{
+//            //błąd połączenia video (opencv) - sprawdzanie czy wystąpiło zamrożenie obrazu
+////            qDebug()<<"błąd open cv";
+//            if(pingThread->isFinished()){
+//                msg.setText("Problem z połączeniem");
+//                sendFrame(1);
+//                opencvThread->quit();
+//                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+//                msg.exec();
+//            }else{
+//                opencvThread->quit();
+//                msg.setText("Wykryto zamrożenie obrazu");
+//                sendFrame(3);
+//                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
+//                msg.exec();
+//            }
+//        }
+//    }
 }
 
 /**

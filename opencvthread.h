@@ -4,6 +4,8 @@
 #include <QTimer>
 #include <opencv2/opencv.hpp>
 #include "ui_mainwindow.h"
+//#include <QMessageBox>
+#include <QErrorMessage>
 
 using namespace cv;
 

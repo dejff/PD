@@ -33,7 +33,7 @@ void SocketThread::waitForRequest()
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(portnumber); //później podłączyć możliwość przesyłania własnego portu, na razie jest na sztywni 58
-
+    qDebug()<<portnumber;
     qDebug()<<bind(socket_descriptor, (struct sockaddr *)&server, sizeof(server));
     qDebug()<<sizeof(server);
 

@@ -37,7 +37,12 @@ void OpencvThread::run()
         connect(&frameTimer, SIGNAL(timeout()), this, SLOT(capture()), Qt::DirectConnection);
         frameTimer.start(30);
     }else{
+        cap.release();
+        frameTimer.stop();
         qDebug()<<"cap nie otawrty";
+        QErrorMessage msg;
+        msg.showMessage("Błąd połączenia wideo, proszę aprawdzić poświadczenia");
+        QThread::quit();
     }
 
     if(isStopPushed)
