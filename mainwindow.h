@@ -44,7 +44,7 @@ private:
     QShortcut *stopShortcut;
     PingThread *pingThread;
 //    VideoThread *videoThread;
-//    OpencvThread *opencvThread;
+    OpencvThread *opencvThread;
 //    SocketThread *socketThread;
     QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
     QThread pingThrd, openCvThrd, videoThrd, socketThrd;
