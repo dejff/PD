@@ -39,28 +39,38 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap(absFilePath));                            //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
 
-    pingThread = new PingThread;
-    pingThread->moveToThread(&pingThrd);
+    //INICJALIZACJA KLAS WORKERÓW DLA WĄTKÓW
+    pingWorker = new PingWorker;
+    pingWorker->moveToThread(&pingThread);
+    opencvWorker = new OpencvWorker;
+    opencvWorker->moveToThread(&openCvThread);
 
-    //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW
-    connect(&pingThrd, SIGNAL(finished()), pingThread, SLOT(stopPing()));
+    //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW - ZAMYKANIE WĄTKÓW
+    connect(&pingThread, SIGNAL(finished()), pingWorker, SLOT(stopPing()));
+    connect(&openCvThread, SIGNAL(finished()), opencvWorker, SLOT(stopCapture()));
 
     //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
-    connect(this, SIGNAL(capturePing(QString)), pingThread, SLOT(sniff(QString))) ;
+    connect(this, SIGNAL(capturePing(QString)), pingWorker, SLOT(sniff(QString))) ;
+    connect(this, SIGNAL(playStream(QString)), opencvWorker, SLOT(capture(QString)));
 
     //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
-    connect(pingThread, SIGNAL(returnMessage(QString)), this, SLOT(checkPing(QString)));
+    connect(pingWorker, SIGNAL(pingReturnMessage(QString)), this, SLOT(checkPing(QString)));
+    connect(opencvWorker, SIGNAL(openCvReturnMsg(QString)), this, SLOT(checkVideoStream(QString)));
+    qRegisterMetaType<Mat>("Mat");
+    connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
 
     timer = new QTimer(this);
-    pingTimer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
+//    openCvTimer = new QTimer(this);
+//    connect(openCvTimer, SIGNAL(timeout()), opencvWorker, SLOT(capture(QString)));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete pingWorker;
+    delete opencvWorker;
 }
-
 /**
  * @brief MainWindow::on_start_cap_button_clicked
  * Funkcja jaka się wykona po naciśnięciu klawisza "Zacznij przechwytywanie"
@@ -72,7 +82,7 @@ void MainWindow::on_start_cap_button_clicked()
     if(ui->ip_addr->text().isEmpty() || ui->ip_addr->text().length()<=4){       //sprawdzamy czy użtykownik cokolwiek wpisał
 
         if(ui->checkBox->isChecked()){
-            msg.setText("Proszę uzupełnić pola ip, hasła i loginu.\nPole port jeśli nie uzupełnione oznacza posrt domyślny.");
+            msg.setText("Proszę uzupełnić pola ip, hasła i loginu.\nPole port jeśli nie uzupełnione oznacza port domyślny.");
         }else{
             msg.setText("Proszę uzupełnić pole ip.\nPole port jeśli nie uzupełnione oznacza port domyślny.");
         }
@@ -124,7 +134,10 @@ void MainWindow::on_start_cap_button_clicked()
         ui->portField->setDisabled(true);
         //URUCHAMIANIE WSZYSTKICH WĄTKÓW
         capturePing(ui->ip_addr->text());
-        pingThrd.start();
+        pingThread.start();
+
+        playStream(url);
+        openCvThread.start();
         //inicjalizacja wątków
 //        pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
 //        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
@@ -167,14 +180,11 @@ void MainWindow::on_stop_cap_button_clicked()
 //    }
 
     //zakończenie wątka pingującego urządzenie
-    if(pingThrd.isRunning()){
+    if(pingThread.isRunning()){
         qDebug()<<"tu też stop";
-        pingThrd.quit();
-        pingThrd.wait();
+        pingThread.quit();
+        pingThread.wait();
 //        pingThread->stopPing();
-        qDebug()<<"ping thr. zamykanie";
-//        pingThread->quit();
-//        pingThread->wait();
         qDebug()<<"ping thr. zamknięty";
 //        delete pingThread;
         qDebug()<<"usunięte ping";
@@ -192,17 +202,17 @@ void MainWindow::on_stop_cap_button_clicked()
 //    }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
-//    if(opencvThread->isRunning()){
-//        qDebug()<<"opencv thr. zamykanie";
-//        opencvThread->stopCapture();
-//        qDebug()<<"Wychodzenie z opencv thr.";
-//        opencvThread->quit();
-//        qDebug()<<"Czekanie na zamknięcie opencvthread test qmake";
-//        opencvThread->wait();
-//        qDebug()<<"opencv thr. zamknięty";
+    if(openCvThread.isRunning()){
+        qDebug()<<"opencv thr. zamykanie";
+//        openCvTh.stopCapture();
+        qDebug()<<"Wychodzenie z opencv thr.";
+        openCvThread.quit();
+        qDebug()<<"Czekanie na zamknięcie opencvthread";
+        openCvThread.wait();
+        qDebug()<<"opencv thr. zamknięty";
 //        delete opencvThread;
-//        qDebug()<<"opencv usunięty";
-//    }
+        qDebug()<<"opencv usunięty";
+    }
 //    if(opencvThread!=NULL){
 //      qDebug()<<absFilePath;
 //        ui->videoLabel->setPixmap(QPixmap(absFilePath));
@@ -324,7 +334,26 @@ void MainWindow::nameCheckBoxClicked()
 	}
 }
 
+
+
+void MainWindow::checkVideoStream(QString string){
+    qDebug()<<string;
+}
+
 void MainWindow::checkPing(QString string)
 {
     qDebug()<<string;
+}
+
+void MainWindow::checkFreezeThread(QString string){
+    qDebug()<<string;
+}
+
+void MainWindow::getVideoFrame(Mat frame)
+{
+    img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
+    ui->videoLabel->setScaledContents(true);
+    ui->videoLabel->setPixmap(QPixmap::fromImage(img));
+    ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
+//    ui->
 }

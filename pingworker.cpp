@@ -1,11 +1,11 @@
-#include "pingthread.h"
+#include "pingworker.h"
 #include <QDebug>
 
-PingThread::PingThread(){
+PingWorker::PingWorker(){
 
 }
 
-PingThread::~PingThread(){
+PingWorker::~PingWorker(){
 
 }
 
@@ -13,10 +13,10 @@ PingThread::~PingThread(){
  * @brief PingThread::ping
  * Metoda pingująca adres ip, wprowadzony w GUI
  */
-void PingThread::sniff(const QString ip)
+void PingWorker::sniff(const QString ip)
 {
 
-    qDebug()<<"Wątek działa";
+    qDebug()<<"Wątek ping działa, IP: "+ip;
     int pingCount=0;
     struct bpf_program fp;	//skompilowane wyrażenie
     bpf_u_int32 mask;		/* maska podsieci */
@@ -52,13 +52,12 @@ void PingThread::sniff(const QString ip)
     QString ping_exp = "ping "+ip+" -c 5 >/dev/null 2>&1";   //wykonanie pinga bez wyświetlania informacji w terminalu
     QByteArray ping_char = ping_exp.toUtf8();               //przekonwertowania zmiennej typu string na bytearray, żeby dalej można było ją przekonwertować na typ char
 
-    system(ping_char.data());
+    system(ping_char.data());	//wywoływanie polecenia systemowego ping na wpisany w interfejsie
 
     //przechwytywanie pakietów
     if(pcap_dispatch(handle,0,got_ping,NULL)==0){   //pcap_dispatch zwróci 0 jeśli po timeoucie ustawionym w pcap_open_live nie zostanie przechwycony żaden pakiet
         qDebug()<<"Zerwanie połączenia";
-        returnMessage("Błąd połączenia");
-//        QThread::quit();                    //jeśli nie zostaną przechwycone żadne pakiety w odpowiedzi na ping, to wątek się zakończy
+        pingReturnMessage("Błąd połączenia");
     }
 
 }
@@ -67,15 +66,14 @@ void PingThread::sniff(const QString ip)
  * @brief PingThread::stopPing
  * Metoda uruchamiana podczas kończenia wątku
  */
-void PingThread::stopPing()
+void PingWorker::stopPing()
 {
-    returnMessage("ZATRZYMANO");
+    pingReturnMessage("ZATRZYMANO");
     qDebug()<<"stop ping";
     pcap_close(handle);
 }
 
-void PingThread::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
+void PingWorker::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-//    emit returnMessage("OK");
-//    qDebug()<<"pakiet:";
+    qDebug()<<"Jest ping";
 }

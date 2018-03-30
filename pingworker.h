@@ -5,16 +5,16 @@
 #include <pcap.h>
 #include <netinet/ip_icmp.h>
 
-class PingThread: public QObject
+class PingWorker: public QObject
 {
 
     Q_OBJECT
 
 public:
-    PingThread();
+    PingWorker();
 //    PingThread(QString ip);
 //    void run() override;
-    ~PingThread();
+    ~PingWorker();
 private:
     QTimer timer;
     QString ip;
@@ -27,7 +27,7 @@ public slots:
 
 signals:
     //SYGNAŁ ZWRACAJĄCY WIADOMOŚĆ O STANIE WĄTKU, MA DWIE WARTOŚĆI "OK" - KIEDY WSZYSTKO DZIAŁA, ORAZ "BRAK POŁĄCZENIA"
-    void returnMessage(const QString &);
+    void pingReturnMessage(const QString &);
 };
 
 #endif // PINGTHREAD_H

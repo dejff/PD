@@ -13,11 +13,11 @@
 
 #define PORT 58
 
-class SocketThread: public QThread
+class SocketWorker: public QThread
 {
     Q_OBJECT
 public:
-    SocketThread(Ui::MainWindow *ui);
+    SocketWorker(Ui::MainWindow *ui);
     void run() override;
     void waitForRequest();
 private:

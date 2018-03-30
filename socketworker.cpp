@@ -1,17 +1,17 @@
-#include "socketthread.h"
+#include "socketworker.h"
 
-SocketThread::SocketThread(Ui::MainWindow *ui)
+SocketWorker::SocketWorker(Ui::MainWindow *ui)
 {
     this->ui = ui;
 }
 
-void SocketThread::run()
+void SocketWorker::run()
 {
     waitForRequest();
 //    exec();
 }
 
-void SocketThread::waitForRequest()
+void SocketWorker::waitForRequest()
 {
     qDebug()<<"Serwer nasłuchuje";
     char hello[] = "Siema z serwera";

@@ -4,13 +4,16 @@
 #include <QMainWindow>
 #include <QShortcut>
 #include <sys/socket.h>
-#include "pingthread.h"
-#include "videothread.h"
-#include "opencvthread.h"
-#include "socketthread.h"
+#include "pingworker.h"
+#include "videoworker.h"
+#include "opencvworker.h"
+#include "socketworker.h"
+#include "freezeworker.h"
 #include <QTimer>
 #include <QMessageBox>
+#include <opencv2/opencv.hpp>
 
+using namespace cv;
 namespace Ui {
 class MainWindow;
 }
@@ -34,7 +37,11 @@ private slots:
     void nameCheckBoxClicked();
 
 public slots:
+    //SLOTY NASŁUCHUJĄCE INFORMACJI ZWROTNEJ Z WĄTKÓW O TYM CZY WYSTĄPIŁ JAKIŚ BŁĄD
     void checkPing(QString string);
+    void checkVideoStream(QString string);
+    void checkFreezeThread(QString string);
+    void getVideoFrame(Mat frame);
 
 private:
     QImage img;
@@ -42,17 +49,18 @@ private:
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
     QShortcut *stopShortcut;
-    PingThread *pingThread;
-//    VideoThread *videoThread;
-    OpencvThread *opencvThread;
-//    SocketThread *socketThread;
+    PingWorker *pingWorker;
+    OpencvWorker *opencvWorker;
+//    FreezeWorker *freezeWorker;
+//    VideoThread *videoWorker;
+//    SocketThread *socketWorker;
     QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
-    QThread pingThrd, openCvThrd, videoThrd, socketThrd;
+    QThread pingThread, openCvThread, videoThread, socketThread, freezeThread;
 
 signals:
     //SYGNAŁY PRZESYŁAJĄCE SYGNAŁY DO WĄTKÓW PODCZAS INICJALIZACJI
     void capturePing(const QString &);
-
+    void playStream(const QString &);
 };
 
 #endif // MAINWINDOW_H

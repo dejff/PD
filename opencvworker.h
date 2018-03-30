@@ -9,16 +9,13 @@
 
 using namespace cv;
 
-class OpencvThread: public QObject
+class OpencvWorker: public QObject
 {
     Q_OBJECT
 
 public:
-    OpencvThread();
-    OpencvThread(QString u1rl, Ui::MainWindow *ui);
-    ~OpencvThread();
-//    void run() override;
-    void stopCapture();
+    OpencvWorker();
+    ~OpencvWorker();
 private:
     bool isStopPushed;
     QTimer frameFreezeTimer;
@@ -28,8 +25,12 @@ private:
     VideoCapture cap;
     Mat frame;
     void getVideo();
-private slots:
-    void capture();
+public slots:
+    void capture(const QString url);
+    void stopCapture();
+signals:
+    void returnFrame(const Mat frame);
+    void openCvReturnMsg(const QString msg);
 };
 
 #endif // OPENCVTHREAD_H

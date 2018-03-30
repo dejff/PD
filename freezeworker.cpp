@@ -1,16 +1,16 @@
-#include "freezethread.h"
+#include "freezeworker.h"
 
-FreezeThread::FreezeThread()
+FreezeWorker::FreezeWorker()
 {
 
 }
 
-FreezeThread::~FreezeThread()
+FreezeWorker::~FreezeWorker()
 {
 
 }
 
-void FreezeThread::run()
+void FreezeWorker::run()
 {
 
     QTimer freezeTimer;
@@ -23,7 +23,7 @@ void FreezeThread::run()
  * Metoda zwracająca 1 w przypadku kiedy ramki sa różne (obraz nie jest zamrożony), lub 2 w przypadku kiedy wystąpiło zamrożenie obrazu
  * @return
  */
-int FreezeThread::checkFreeze()
+int FreezeWorker::checkFreeze()
 {
     Mat frame1, frame2, outFrame;
     if(frame1.empty()){
@@ -46,7 +46,7 @@ int FreezeThread::checkFreeze()
     }
 }
 
-void FreezeThread::stopFreeze()
+void FreezeWorker::stopFreeze()
 {
 
 }

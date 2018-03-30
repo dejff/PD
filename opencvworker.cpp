@@ -1,30 +1,27 @@
-#include "opencvthread.h"
+#include "opencvworker.h"
 #include <QDebug>
 #include <stdio.h>
 
 using namespace cv;
 using namespace std;
 
-OpencvThread::OpencvThread()
+OpencvWorker::OpencvWorker()
 {
 
 }
 
-OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
-{
-    this->url = url;
-    this->ui = ui;
-    isStopPushed=false;
-}
+//OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
+//{
+//    this->url = url;
+//    this->ui = ui;
+//    isStopPushed=false;
+//}
 
-OpencvThread::~OpencvThread()
+OpencvWorker::~OpencvWorker()
 {
-//    qDebug()<<"destruktor opencv";
-//    if(cap.isOpened())
-//    {
-//        qDebug()<<"Zamykam wątek";
-//        cap.release();  //zwalnianie urządzenia, z którego był pobierany strumień wideo
-//    }
+    qDebug()<<"destruktor opencv";
+    cap.release();  //zwalnianie urządzenia, z którego był pobierany strumień wideo
+    qDebug()<<"Zamykam wątek";
 }
 
 //void OpencvThread::run()
@@ -61,16 +58,23 @@ OpencvThread::~OpencvThread()
  * @brief OpencvThread::capture
  * Metoda nawiązująca połączenie z kamerą wideo, przesyłająca strumień obrazu z niej i wyświetlająca go w labelu
  */
-void OpencvThread::capture()
+void OpencvWorker::capture(const QString url)
 {
+    isStopPushed= false;
+    qDebug()<<"URL: "+url;
+    cap.open(url.toUtf8().data());
     if(cap.isOpened()){
-        cap.read(frame);
-        img = QImage((const unsigned char*)(frame.data), frame.cols, frame.rows, QImage::Format_RGB888);
-        ui->videoLabel->setScaledContents(true);
-        ui->videoLabel->setPixmap(QPixmap::fromImage(img));
-        ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
-        ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
+        while(!isStopPushed){
+            cap.read(frame);
+            emit returnFrame(frame);
+        }
+
+//        ui->videoLabel->setScaledContents(true);
+//        ui->videoLabel->setPixmap(QPixmap::fromImage(img));
+//        ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
+//        ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
     }else{
+        emit openCvReturnMsg("Nie można połączyć się z kamerą");
         qDebug()<<"nie działa, cap zamknięty";
     }
 }
@@ -79,7 +83,7 @@ void OpencvThread::capture()
  * @brief OpencvThread::stopCapture
  * Funkcja
  */
-void OpencvThread::stopCapture()
+void OpencvWorker::stopCapture()
 {
 //   qDebug()<<img_path;
     qDebug()<<"Zatrzumuję opencv";

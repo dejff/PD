@@ -1,13 +1,13 @@
-#include "videothread.h"
+#include "videoworker.h"
 #include <QDebug>
 
-VideoThread::VideoThread(QString url, Ui::MainWindow *ui)
+VideoWorker::VideoWorker(QString url, Ui::MainWindow *ui)
 {
     this->url = url;
     this->ui = ui;
 }
 
-VideoThread::~VideoThread()
+VideoWorker::~VideoWorker()
 {
     avcodec_close(c);
     av_free(c);
@@ -18,13 +18,13 @@ VideoThread::~VideoThread()
 }
 
 
-void VideoThread::run(){
+void VideoWorker::run(){
     processVideo();
 //    streamProcess();
     exec();
 }
 
-void VideoThread::processVideo()
+void VideoWorker::processVideo()
 {
     qDebug()<<"process video";
 
@@ -41,7 +41,7 @@ void VideoThread::processVideo()
     qDebug()<<"program działa"+libvlc_audio_get_delay(mp);
 }
 
-void VideoThread::stopVideo()
+void VideoWorker::stopVideo()
 {
     qDebug()<<"zaczynam zamykać";
     libvlc_media_player_stop(mp);

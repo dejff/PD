@@ -8,12 +8,12 @@
 
 using namespace cv;
 
-class FreezeThread: public QThread
+class FreezeWorker: public QThread
 {
     Q_OBJECT
 public:
-    FreezeThread();
-    ~FreezeThread();
+    FreezeWorker();
+    ~FreezeWorker();
     void run() override;
     void stopFreeze();
 

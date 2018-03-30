@@ -67,19 +67,19 @@ LIBS += -L/usr/local/lib -lpcap \
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    pingthread.cpp \
-    videothread.cpp \
-    opencvthread.cpp \
-    socketthread.cpp \
-    freezethread.cpp
+    pingworker.cpp \
+    opencvworker.cpp \
+    freezeworker.cpp \
+    socketworker.cpp \
+    videoworker.cpp
 
 HEADERS += \
         mainwindow.h \
-    pingthread.h \
-    videothread.h \
-    opencvthread.h \
-    socketthread.h \
-    freezethread.h
+    pingworker.h \
+    opencvworker.h \
+    freezeworker.h \
+    socketworker.h \
+    videoworker.h
 
 FORMS += \
         mainwindow.ui
