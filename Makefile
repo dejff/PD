@@ -50,27 +50,27 @@ OBJECTS_DIR   = build/release/
 
 SOURCES       = main.cpp \
 		mainwindow.cpp \
-		pingthread.cpp \
-		videothread.cpp \
-		opencvthread.cpp \
-		socketthread.cpp \
-		freezethread.cpp build/release/moc_mainwindow.cpp \
-		build/release/moc_pingthread.cpp \
-		build/release/moc_opencvthread.cpp \
-		build/release/moc_socketthread.cpp \
-		build/release/moc_freezethread.cpp
+		pingworker.cpp \
+		opencvworker.cpp \
+		freezeworker.cpp \
+		socketworker.cpp \
+		videoworker.cpp build/release/moc_mainwindow.cpp \
+		build/release/moc_pingworker.cpp \
+		build/release/moc_opencvworker.cpp \
+		build/release/moc_freezeworker.cpp \
+		build/release/moc_socketworker.cpp
 OBJECTS       = build/release/main.o \
 		build/release/mainwindow.o \
-		build/release/pingthread.o \
-		build/release/videothread.o \
-		build/release/opencvthread.o \
-		build/release/socketthread.o \
-		build/release/freezethread.o \
+		build/release/pingworker.o \
+		build/release/opencvworker.o \
+		build/release/freezeworker.o \
+		build/release/socketworker.o \
+		build/release/videoworker.o \
 		build/release/moc_mainwindow.o \
-		build/release/moc_pingthread.o \
-		build/release/moc_opencvthread.o \
-		build/release/moc_socketthread.o \
-		build/release/moc_freezethread.o
+		build/release/moc_pingworker.o \
+		build/release/moc_opencvworker.o \
+		build/release/moc_freezeworker.o \
+		build/release/moc_socketworker.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -129,17 +129,17 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		SystemNadzoruPolaczeniaWideo.pro mainwindow.h \
-		pingthread.h \
-		videothread.h \
-		opencvthread.h \
-		socketthread.h \
-		freezethread.h main.cpp \
+		pingworker.h \
+		opencvworker.h \
+		freezeworker.h \
+		socketworker.h \
+		videoworker.h main.cpp \
 		mainwindow.cpp \
-		pingthread.cpp \
-		videothread.cpp \
-		opencvthread.cpp \
-		socketthread.cpp \
-		freezethread.cpp
+		pingworker.cpp \
+		opencvworker.cpp \
+		freezeworker.cpp \
+		socketworker.cpp \
+		videoworker.cpp
 QMAKE_TARGET  = SystemNadzoruPolaczeniaWideo
 DESTDIR       = build/release/#avoid trailing-slash linebreak
 TARGET        = build/release/SystemNadzoruPolaczeniaWideo
@@ -308,8 +308,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h pingthread.h videothread.h opencvthread.h socketthread.h freezethread.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp pingthread.cpp videothread.cpp opencvthread.cpp socketthread.cpp freezethread.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h pingworker.h opencvworker.h freezeworker.h socketworker.h videoworker.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp pingworker.cpp opencvworker.cpp freezeworker.cpp socketworker.cpp videoworker.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui $(DISTDIR)/
 
 
@@ -334,31 +334,32 @@ check: first
 
 compiler_rcc_make_all:
 compiler_rcc_clean:
-compiler_moc_header_make_all: build/release/moc_mainwindow.cpp build/release/moc_pingthread.cpp build/release/moc_opencvthread.cpp build/release/moc_socketthread.cpp build/release/moc_freezethread.cpp
+compiler_moc_header_make_all: build/release/moc_mainwindow.cpp build/release/moc_pingworker.cpp build/release/moc_opencvworker.cpp build/release/moc_freezeworker.cpp build/release/moc_socketworker.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) build/release/moc_mainwindow.cpp build/release/moc_pingthread.cpp build/release/moc_opencvthread.cpp build/release/moc_socketthread.cpp build/release/moc_freezethread.cpp
-build/release/moc_mainwindow.cpp: pingthread.h \
-		videothread.h \
+	-$(DEL_FILE) build/release/moc_mainwindow.cpp build/release/moc_pingworker.cpp build/release/moc_opencvworker.cpp build/release/moc_freezeworker.cpp build/release/moc_socketworker.cpp
+build/release/moc_mainwindow.cpp: pingworker.h \
+		videoworker.h \
 		build/release/ui_mainwindow.h \
-		opencvthread.h \
-		socketthread.h \
+		opencvworker.h \
+		socketworker.h \
+		freezeworker.h \
 		mainwindow.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o build/release/moc_mainwindow.cpp
 
-build/release/moc_pingthread.cpp: pingthread.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include pingthread.h -o build/release/moc_pingthread.cpp
+build/release/moc_pingworker.cpp: pingworker.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include pingworker.h -o build/release/moc_pingworker.cpp
 
-build/release/moc_opencvthread.cpp: build/release/ui_mainwindow.h \
-		opencvthread.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include opencvthread.h -o build/release/moc_opencvthread.cpp
+build/release/moc_opencvworker.cpp: build/release/ui_mainwindow.h \
+		opencvworker.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include opencvworker.h -o build/release/moc_opencvworker.cpp
 
-build/release/moc_socketthread.cpp: build/release/ui_mainwindow.h \
-		socketthread.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include socketthread.h -o build/release/moc_socketthread.cpp
+build/release/moc_freezeworker.cpp: build/release/ui_mainwindow.h \
+		freezeworker.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include freezeworker.h -o build/release/moc_freezeworker.cpp
 
-build/release/moc_freezethread.cpp: build/release/ui_mainwindow.h \
-		freezethread.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include freezethread.h -o build/release/moc_freezethread.cpp
+build/release/moc_socketworker.cpp: build/release/ui_mainwindow.h \
+		socketworker.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include socketworker.h -o build/release/moc_socketworker.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -379,54 +380,56 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 ####### Compile
 
 build/release/main.o: main.cpp mainwindow.h \
-		pingthread.h \
-		videothread.h \
+		pingworker.h \
+		videoworker.h \
 		build/release/ui_mainwindow.h \
-		opencvthread.h \
-		socketthread.h
+		opencvworker.h \
+		socketworker.h \
+		freezeworker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/main.o main.cpp
 
 build/release/mainwindow.o: mainwindow.cpp mainwindow.h \
-		pingthread.h \
-		videothread.h \
+		pingworker.h \
+		videoworker.h \
 		build/release/ui_mainwindow.h \
-		opencvthread.h \
-		socketthread.h
+		opencvworker.h \
+		socketworker.h \
+		freezeworker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/mainwindow.o mainwindow.cpp
 
-build/release/pingthread.o: pingthread.cpp pingthread.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/pingthread.o pingthread.cpp
+build/release/pingworker.o: pingworker.cpp pingworker.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/pingworker.o pingworker.cpp
 
-build/release/videothread.o: videothread.cpp videothread.h \
+build/release/opencvworker.o: opencvworker.cpp opencvworker.h \
 		build/release/ui_mainwindow.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/videothread.o videothread.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/opencvworker.o opencvworker.cpp
 
-build/release/opencvthread.o: opencvthread.cpp opencvthread.h \
+build/release/freezeworker.o: freezeworker.cpp freezeworker.h \
 		build/release/ui_mainwindow.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/opencvthread.o opencvthread.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/freezeworker.o freezeworker.cpp
 
-build/release/socketthread.o: socketthread.cpp socketthread.h \
+build/release/socketworker.o: socketworker.cpp socketworker.h \
 		build/release/ui_mainwindow.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/socketthread.o socketthread.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/socketworker.o socketworker.cpp
 
-build/release/freezethread.o: freezethread.cpp freezethread.h \
+build/release/videoworker.o: videoworker.cpp videoworker.h \
 		build/release/ui_mainwindow.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/freezethread.o freezethread.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/videoworker.o videoworker.cpp
 
 build/release/moc_mainwindow.o: build/release/moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_mainwindow.o build/release/moc_mainwindow.cpp
 
-build/release/moc_pingthread.o: build/release/moc_pingthread.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_pingthread.o build/release/moc_pingthread.cpp
+build/release/moc_pingworker.o: build/release/moc_pingworker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_pingworker.o build/release/moc_pingworker.cpp
 
-build/release/moc_opencvthread.o: build/release/moc_opencvthread.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_opencvthread.o build/release/moc_opencvthread.cpp
+build/release/moc_opencvworker.o: build/release/moc_opencvworker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_opencvworker.o build/release/moc_opencvworker.cpp
 
-build/release/moc_socketthread.o: build/release/moc_socketthread.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_socketthread.o build/release/moc_socketthread.cpp
+build/release/moc_freezeworker.o: build/release/moc_freezeworker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_freezeworker.o build/release/moc_freezeworker.cpp
 
-build/release/moc_freezethread.o: build/release/moc_freezethread.cpp 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_freezethread.o build/release/moc_freezethread.cpp
+build/release/moc_socketworker.o: build/release/moc_socketworker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/moc_socketworker.o build/release/moc_socketworker.cpp
 
 ####### Install
 

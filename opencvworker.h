@@ -4,8 +4,8 @@
 #include <QTimer>
 #include <opencv2/opencv.hpp>
 #include "ui_mainwindow.h"
-//#include <QMessageBox>
 #include <QErrorMessage>
+#include <QMutex>
 
 using namespace cv;
 
@@ -17,17 +17,18 @@ public:
     OpencvWorker();
     ~OpencvWorker();
 private:
+    QMutex mutex;
     bool isStopPushed;
-    QTimer frameFreezeTimer;
+    QTimer *frameTimer;
     QImage img;
     Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;
     Mat frame;
-    void getVideo();
 public slots:
     void capture(const QString url);
     void stopCapture();
+    void tick();
 signals:
     void returnFrame(const Mat frame);
     void openCvReturnMsg(const QString msg);

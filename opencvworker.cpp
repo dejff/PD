@@ -1,27 +1,18 @@
 #include "opencvworker.h"
 #include <QDebug>
-#include <stdio.h>
 
 using namespace cv;
 using namespace std;
 
 OpencvWorker::OpencvWorker()
 {
-
+    isStopPushed=false;
+    frameTimer = new QTimer(this);
 }
-
-//OpencvThread::OpencvThread(QString url, Ui::MainWindow *ui)
-//{
-//    this->url = url;
-//    this->ui = ui;
-//    isStopPushed=false;
-//}
 
 OpencvWorker::~OpencvWorker()
 {
-    qDebug()<<"destruktor opencv";
-    cap.release();  //zwalnianie urządzenia, z którego był pobierany strumień wideo
-    qDebug()<<"Zamykam wątek";
+
 }
 
 //void OpencvThread::run()
@@ -60,23 +51,41 @@ OpencvWorker::~OpencvWorker()
  */
 void OpencvWorker::capture(const QString url)
 {
-    isStopPushed= false;
-    qDebug()<<"URL: "+url;
+    qDebug()<<"Start capture";
+    mutex.lock();
+    mutex.unlock();
     cap.open(url.toUtf8().data());
-    if(cap.isOpened()){
-        while(!isStopPushed){
-            cap.read(frame);
-            emit returnFrame(frame);
-        }
-
-//        ui->videoLabel->setScaledContents(true);
-//        ui->videoLabel->setPixmap(QPixmap::fromImage(img));
-//        ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
-//        ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
-    }else{
-        emit openCvReturnMsg("Nie można połączyć się z kamerą");
+    if(!cap.isOpened()){
         qDebug()<<"nie działa, cap zamknięty";
+        emit openCvReturnMsg("Nie można połączyć się z kamerą");
+////        ui->videoLabel->setScaledContents(true);
+////        ui->videoLabel->setPixmap(QPixmap::fromImage(img));
+////        ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
+////        ui->resolutionLabel->setText(QString::number(cap.get(CAP_PROP_FRAME_WIDTH))+"x"+QString::number(cap.get(CAP_PROP_FRAME_HEIGHT)));
     }
+
+    connect(frameTimer, SIGNAL(timeout()), this, SLOT(tick()), Qt::DirectConnection);
+    frameTimer->start(30);
+
+//    mutex.lock();
+//    while(true){   //ten while chrzani wszystko... :/ trzeba zatrzymać tą pętlę
+//        cap.read(frame);
+////        QMutexLocker locker(&mutex);
+//        mutex.lock();
+//        qDebug()<<isStopPushed;
+//        if(isStopPushed) break;
+//        mutex.unlock();
+//        emit returnFrame(frame);
+//    }
+//    mutex.unlock();
+}
+
+void OpencvWorker::tick()
+{
+    cap.read(frame);
+    emit returnFrame(frame);
+    qDebug()<<isStopPushed;
+    qDebug()<<"Jedziemy z kurami!!!";
 }
 
 /**
@@ -85,12 +94,10 @@ void OpencvWorker::capture(const QString url)
  */
 void OpencvWorker::stopCapture()
 {
-//   qDebug()<<img_path;
     qDebug()<<"Zatrzumuję opencv";
-//    cap.release();
-//    frameFreezeTimer.stop();
-    isStopPushed=true;
+    frameTimer->stop();
+    cap.release();
     qDebug()<<"opencv zatrzymany";
 //    ui->videoLabel->setPixmap(QPixmap::fromImage());
-    ui->resolutionLabel->setText("");
+//    ui->resolutionLabel->setText("");
 }

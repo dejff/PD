@@ -56,8 +56,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
     connect(pingWorker, SIGNAL(pingReturnMessage(QString)), this, SLOT(checkPing(QString)));
     connect(opencvWorker, SIGNAL(openCvReturnMsg(QString)), this, SLOT(checkVideoStream(QString)));
-    qRegisterMetaType<Mat>("Mat");
-    connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
+//    qRegisterMetaType<Mat>("Mat");
+//    connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
@@ -71,6 +71,7 @@ MainWindow::~MainWindow()
     delete pingWorker;
     delete opencvWorker;
 }
+
 /**
  * @brief MainWindow::on_start_cap_button_clicked
  * Funkcja jaka się wykona po naciśnięciu klawisza "Zacznij przechwytywanie"
@@ -181,7 +182,6 @@ void MainWindow::on_stop_cap_button_clicked()
 
     //zakończenie wątka pingującego urządzenie
     if(pingThread.isRunning()){
-        qDebug()<<"tu też stop";
         pingThread.quit();
         pingThread.wait();
 //        pingThread->stopPing();
@@ -189,6 +189,16 @@ void MainWindow::on_stop_cap_button_clicked()
 //        delete pingThread;
         qDebug()<<"usunięte ping";
 
+    }
+    //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
+    if(openCvThread.isRunning()){
+        qDebug()<<"opencv thr. zamykanie";
+        openCvThread.quit();
+        qDebug()<<"Czekanie na zamknięcie opencvthread";
+        openCvThread.wait();
+        qDebug()<<"opencv thr. zamknięty";
+//        delete opencvThread;
+        qDebug()<<"opencv usunięty";
     }
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
 //    if(videoThread->isRunning()){
@@ -201,18 +211,6 @@ void MainWindow::on_stop_cap_button_clicked()
 //        qDebug()<<"usunięte video";
 //    }
 
-    //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
-    if(openCvThread.isRunning()){
-        qDebug()<<"opencv thr. zamykanie";
-//        openCvTh.stopCapture();
-        qDebug()<<"Wychodzenie z opencv thr.";
-        openCvThread.quit();
-        qDebug()<<"Czekanie na zamknięcie opencvthread";
-        openCvThread.wait();
-        qDebug()<<"opencv thr. zamknięty";
-//        delete opencvThread;
-        qDebug()<<"opencv usunięty";
-    }
 //    if(opencvThread!=NULL){
 //      qDebug()<<absFilePath;
 //        ui->videoLabel->setPixmap(QPixmap(absFilePath));

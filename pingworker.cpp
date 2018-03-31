@@ -75,5 +75,5 @@ void PingWorker::stopPing()
 
 void PingWorker::got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet)
 {
-    qDebug()<<"Jest ping";
+//    qDebug()<<"Jest ping";
 }
