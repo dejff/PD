@@ -56,8 +56,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
     connect(pingWorker, SIGNAL(pingReturnMessage(QString)), this, SLOT(checkPing(QString)));
     connect(opencvWorker, SIGNAL(openCvReturnMsg(QString)), this, SLOT(checkVideoStream(QString)));
-//    qRegisterMetaType<Mat>("Mat");
-//    connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
+    qRegisterMetaType<Mat>("Mat");
+    connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
