@@ -18,11 +18,11 @@ VideoWorker::~VideoWorker()
 }
 
 
-void VideoWorker::run(){
-    processVideo();
-//    streamProcess();
-    exec();
-}
+//void VideoWorker::run(){
+//    processVideo();
+////    streamProcess();
+//    exec();
+//}
 
 void VideoWorker::processVideo()
 {

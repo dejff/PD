@@ -15,9 +15,8 @@ PingWorker::~PingWorker(){
  */
 void PingWorker::sniff(const QString ip)
 {
-
-    qDebug()<<"Wątek ping działa, IP: "+ip;
-    int pingCount=0;
+    qDebug()<<"Ping działa";
+//    int pingCount=0;
     struct bpf_program fp;	//skompilowane wyrażenie
     bpf_u_int32 mask;		/* maska podsieci */
     bpf_u_int32 net;		/* The IP of our sniffing device */
@@ -69,7 +68,6 @@ void PingWorker::sniff(const QString ip)
 void PingWorker::stopPing()
 {
     pingReturnMessage("ZATRZYMANO");
-    qDebug()<<"stop ping";
     pcap_close(handle);
 }
 

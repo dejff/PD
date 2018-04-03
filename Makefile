@@ -341,6 +341,7 @@ build/release/moc_mainwindow.cpp: pingworker.h \
 		videoworker.h \
 		build/release/ui_mainwindow.h \
 		opencvworker.h \
+		mainwindow.h \
 		socketworker.h \
 		freezeworker.h \
 		mainwindow.h
@@ -350,6 +351,12 @@ build/release/moc_pingworker.cpp: pingworker.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include pingworker.h -o build/release/moc_pingworker.cpp
 
 build/release/moc_opencvworker.cpp: build/release/ui_mainwindow.h \
+		mainwindow.h \
+		pingworker.h \
+		videoworker.h \
+		opencvworker.h \
+		socketworker.h \
+		freezeworker.h \
 		opencvworker.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/dawid/Inzynierka -I/usr/local/include/opencv -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include opencvworker.h -o build/release/moc_opencvworker.cpp
 
@@ -401,7 +408,12 @@ build/release/pingworker.o: pingworker.cpp pingworker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/pingworker.o pingworker.cpp
 
 build/release/opencvworker.o: opencvworker.cpp opencvworker.h \
-		build/release/ui_mainwindow.h
+		build/release/ui_mainwindow.h \
+		mainwindow.h \
+		pingworker.h \
+		videoworker.h \
+		socketworker.h \
+		freezeworker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build/release/opencvworker.o opencvworker.cpp
 
 build/release/freezeworker.o: freezeworker.cpp freezeworker.h \

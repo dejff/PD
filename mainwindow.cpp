@@ -61,8 +61,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
-//    openCvTimer = new QTimer(this);
-//    connect(openCvTimer, SIGNAL(timeout()), opencvWorker, SLOT(capture(QString)));
 }
 
 MainWindow::~MainWindow()
@@ -139,16 +137,9 @@ void MainWindow::on_start_cap_button_clicked()
 
         playStream(url);
         openCvThread.start();
-        //inicjalizacja wątków
-//        pingThread = new PingThread(ui->ip_addr->text());       //do wątku ping przekazywany jest tylko adres ip urządzenia
 //        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
-//        opencvThread = new OpencvThread(url, ui);               //do tego wątku przekazywany jest sparsowany adres url urządzenia
 //        socketThread = new SocketThread(ui);
-//        pingThread->start();
 
-//        videoThread->start();
-//        opencvThread->start();
-//        socketThread->start();
         ui->status_label->setText("Program działa");
 //        capturePing(ui->ip_addr->text());
 
@@ -184,21 +175,14 @@ void MainWindow::on_stop_cap_button_clicked()
     if(pingThread.isRunning()){
         pingThread.quit();
         pingThread.wait();
-//        pingThread->stopPing();
-        qDebug()<<"ping thr. zamknięty";
-//        delete pingThread;
-        qDebug()<<"usunięte ping";
+        qDebug()<<"ping thr. zamknięty i usunięty";
 
     }
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
     if(openCvThread.isRunning()){
-        qDebug()<<"opencv thr. zamykanie";
         openCvThread.quit();
-        qDebug()<<"Czekanie na zamknięcie opencvthread";
         openCvThread.wait();
-        qDebug()<<"opencv thr. zamknięty";
-//        delete opencvThread;
-        qDebug()<<"opencv usunięty";
+        qDebug()<<"opencv thr. zamknięty i usunięty";
     }
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
 //    if(videoThread->isRunning()){
@@ -207,17 +191,17 @@ void MainWindow::on_stop_cap_button_clicked()
 //        videoThread->quit();
 //        videoThread->wait();
 //        qDebug()<<"video thr. zamknięty";
-////        delete videoThread;
 //        qDebug()<<"usunięte video";
 //    }
 
-//    if(opencvThread!=NULL){
+//    if(openCvThread.isFinished()){
 //      qDebug()<<absFilePath;
 //        ui->videoLabel->setPixmap(QPixmap(absFilePath));
 //    }
-    ui->videoLabel->setScaledContents(true);
-    ui->videoLabel->setPixmap(QPixmap(absFilePath));
+//    ui->videoLabel->setScaledContents(true);
+//    ui->videoLabel->setPixmap(QPixmap(absFilePath));
 
+    //        pingThread->stopPing();
     if(ui->nameCheckBox->isChecked()){
         ui->nameField->setDisabled(false);
     }
@@ -332,8 +316,6 @@ void MainWindow::nameCheckBoxClicked()
 	}
 }
 
-
-
 void MainWindow::checkVideoStream(QString string){
     qDebug()<<string;
 }
@@ -353,5 +335,4 @@ void MainWindow::getVideoFrame(Mat frame)
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap::fromImage(img));
     ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
-//    ui->
 }

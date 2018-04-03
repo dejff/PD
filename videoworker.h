@@ -16,15 +16,11 @@ extern "C"
 
 #define INBUF_SIZE 4096
 
-class VideoWorker: public QThread
-{
+class VideoWorker: public QObject{
 public:
     VideoWorker(QString url, Ui::MainWindow *ui);
     ~VideoWorker();
-    void run() override;
     void processVideo();
-//    void streamProcess();
-//    void test();
     void stopVideo();
 private:
     Ui::MainWindow *ui;
