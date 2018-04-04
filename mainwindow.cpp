@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
-#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,10 +43,13 @@ MainWindow::MainWindow(QWidget *parent) :
     pingWorker->moveToThread(&pingThread);
     opencvWorker = new OpencvWorker;
     opencvWorker->moveToThread(&openCvThread);
+    videoWorker = new VideoWorker;
+    videoWorker->moveToThread(videoThread);
 
     //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW - ZAMYKANIE WĄTKÓW
     connect(&pingThread, SIGNAL(finished()), pingWorker, SLOT(stopPing()));
     connect(&openCvThread, SIGNAL(finished()), opencvWorker, SLOT(stopCapture()));
+    connect(&videoThread, SIGNAL(finished()), videoWorker, SLOT());
 
     //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
     connect(this, SIGNAL(capturePing(QString)), pingWorker, SLOT(sniff(QString))) ;

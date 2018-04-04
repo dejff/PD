@@ -20,8 +20,6 @@ class VideoWorker: public QObject{
 public:
     VideoWorker(QString url, Ui::MainWindow *ui);
     ~VideoWorker();
-    void processVideo();
-    void stopVideo();
 private:
     Ui::MainWindow *ui;
     libvlc_instance_t *instance;
@@ -35,6 +33,11 @@ private:
     uint8_t inbuf[INBUF_SIZE + FF_INPUT_BUFFER_PADDING_SIZE];
     char buf[1024];
     AVPacket avpkt;
+
+public slots:
+    void stopVideo();
+    void processVideo();
+signals:
 
 };
 

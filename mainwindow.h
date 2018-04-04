@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
+#include <QFileInfo>
 
 using namespace cv;
 namespace Ui {
@@ -52,7 +53,7 @@ private:
     PingWorker *pingWorker;
     OpencvWorker *opencvWorker;
 //    FreezeWorker *freezeWorker;
-//    VideoThread *videoWorker;
+    VideoWorker *videoWorker;
 //    SocketThread *socketWorker;
     QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
     QThread pingThread, openCvThread, videoThread, socketThread, freezeThread;
