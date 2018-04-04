@@ -36,8 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->loginField->setPlaceholderText("Login");
     QFileInfo file(IMAGE_PATH);
     absFilePath = file.absoluteFilePath();
-    ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap(absFilePath));                            //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
+    ui->videoLabel->setScaledContents(true);
 
     //INICJALIZACJA KLAS WORKERÓW DLA WĄTKÓW
     pingWorker = new PingWorker;

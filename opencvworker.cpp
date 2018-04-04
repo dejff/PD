@@ -47,9 +47,9 @@ void OpencvWorker::stopCapture()
 {
     qDebug()<<"Zatrzumuję opencv";
     qDebug()<<"/home/dawid/Inzynierka/no_video.jpg";
-    Mat noSignalImg = imread("/home/dawid/Inzynierka/no_video.jpg", IMREAD_COLOR);
+//    Mat noSignalImg = imread("/home/dawid/Inzynierka/no_video.jpg", IMREAD_ANYCOLOR);
     frameTimer->stop();
-    emit returnFrame(noSignalImg);
+//    emit returnFrame(noSignalImg);
     cap.release();
     qDebug()<<"opencv zatrzymany";
 //    ui->videoLabel->setPixmap(QPixmap::fromImage());

@@ -4,6 +4,15 @@
 #include <QTimer>
 #include <pcap.h>
 #include <netinet/ip_icmp.h>
+#include <oping.h>
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+#define PING_TIMEOUT 10.0
+#define NO_OF_SAMPLES 10
+
+using namespace std;
 
 class PingWorker: public QObject
 {
@@ -12,18 +21,23 @@ class PingWorker: public QObject
 
 public:
     PingWorker();
-//    PingThread(QString ip);
-//    void run() override;
     ~PingWorker();
 private:
-    QTimer timer;
-    QString ip;
-    pcap_t *handle;
+    vector<double> jitters;     //tablica przechowująca 10 pomiarów jittera
+    vector<double> latencies;   //tablica przechowująca 10 pomiarów czasu odpowiedzi
+    vector<double>::iterator latIter;
+    vector<double>::iterator jittIter;
+    pingobj_t *ping;
+    pingobj_iter_t *iter;
+    double latency, diff;     //zmienna przechowująca informacje o opóźnieniu
+    long unsigned int len;
+    char *ipAddr;
+    QTimer *timer;
     QString message;
-    static void got_ping(u_char *args, const struct pcap_pkthdr *header, const u_char *packet);
 public slots:
     void sniff(const QString ip);
     void stopPing();
+    void doPing();
 
 signals:
     //SYGNAŁ ZWRACAJĄCY WIADOMOŚĆ O STANIE WĄTKU, MA DWIE WARTOŚĆI "OK" - KIEDY WSZYSTKO DZIAŁA, ORAZ "BRAK POŁĄCZENIA"
