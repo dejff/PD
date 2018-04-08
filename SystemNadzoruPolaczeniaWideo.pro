@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = SystemNadzoruPolaczeniaWideo
 TEMPLATE = app
+QMAKE_CXXFLAGS += -std=c++11
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -40,11 +41,11 @@ CONFIG(debug, debug|release) {
 
 $$OUT_PWD= $$PWD/build/release/
 
-#copydata.commands = $(COPY_DIR) $$PWD/no_video.jpg $$PWD/build/release/
-#first.depends = $(first) copydata
-#export(first.depends)
-#export(copydata.commands)
-#QMAKE_EXTRA_TARGETS += first copydata
+copydata.commands = $(COPY_DIR) $$PWD/no_video.jpg $$PWD/build/release/
+first.depends = $(first) copydata
+export(first.depends)
+export(copydata.commands)
+QMAKE_EXTRA_TARGETS += first copydata
 
 Release:DESTDIR = release
 Release:OBJECTS_DIR = release/.obj
@@ -62,7 +63,7 @@ INCLUDEPATH += /usr/local/include/opencv
 LIBS += -L/usr/local/lib -loping \
      -lvlc \
      -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc -lopencv_video -lopencv_videoio \
-     -lavutil -lavformat -lavcodec
+     -lavutil -lavformat -lavcodec -lz -lm -lswscale -std=c++11
 
 SOURCES += \
         main.cpp \
@@ -79,7 +80,8 @@ HEADERS += \
     opencvworker.h \
     freezeworker.h \
     socketworker.h \
-    videoworker.h
+    videoworker.h \
+    errorenums.h
 
 FORMS += \
         mainwindow.ui

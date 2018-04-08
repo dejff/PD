@@ -8,8 +8,9 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include "errorenums.h"
 
-#define PING_TIMEOUT 10.0
+#define PING_TIMEOUT 2.0
 #define NO_OF_SAMPLES 10
 
 using namespace std;
@@ -41,7 +42,9 @@ public slots:
 
 signals:
     //SYGNAŁ ZWRACAJĄCY WIADOMOŚĆ O STANIE WĄTKU, MA DWIE WARTOŚĆI "OK" - KIEDY WSZYSTKO DZIAŁA, ORAZ "BRAK POŁĄCZENIA"
-    void pingReturnMessage(const QString &);
+    void pingReturnMessage(const ErrorEnums &);
+    void returnNetworkDetails();
+    void sendParams(const double &, const double &);
 };
 
 #endif // PINGTHREAD_H

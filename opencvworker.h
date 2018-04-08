@@ -4,7 +4,6 @@
 #include <QTimer>
 #include <opencv2/opencv.hpp>
 #include "ui_mainwindow.h"
-//#include "mainwindow.h"
 #include <QErrorMessage>
 #include <QMutex>
 
@@ -33,6 +32,7 @@ public slots:
 signals:
     void returnFrame(const Mat frame);
     void openCvReturnMsg(const QString msg);
+    void capStopped();
 };
 
 #endif // OPENCVTHREAD_H

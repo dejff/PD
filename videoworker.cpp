@@ -1,168 +1,159 @@
-#include "videoworker.h"
-#include <QDebug>
+#include <qt5/QtCore/qlogging.h>
 
-VideoWorker::VideoWorker(QString url, Ui::MainWindow *ui)
+#include "videoworker.h"
+
+VideoWorker::VideoWorker()
 {
-    this->url = url;
-    this->ui = ui;
+
 }
 
 VideoWorker::~VideoWorker()
 {
-    avcodec_close(c);
-    av_free(c);
-    av_free(picture);
-    libvlc_media_player_stop(mp);
-    libvlc_media_player_release(mp);
-    libvlc_release(instance);
+
 }
 
-
-//void VideoWorker::run(){
-//    processVideo();
-////    streamProcess();
-//    exec();
-//}
-
-void VideoWorker::processVideo()
+void VideoWorker::processVideo(const QString url)
 {
-    qDebug()<<"process video";
+    qDebug()<<"test";
+    AVFormatContext *formatContext = NULL;
+        AVCodecContext *codecContextOriginal = NULL;
+        AVCodecContext *codecContext = NULL;
+        AVCodec *codec = NULL;
+        AVFrame *frame = NULL;
+        AVFrame *frameRGB = NULL;
+        AVPacket packet;
+        int frameFinished;
+        int videoStream, i, iloscBajtow;
+        uint8_t *bufor = NULL;
+        struct SwsContext *sws_ctx = NULL;
 
-    instance = libvlc_new(0, NULL);
-    mp = libvlc_media_player_new(instance);
-    qDebug()<<"instancja?";
-    QByteArray byteArray = url.toUtf8();
-    const char *ch_arr = byteArray.data();
-//    m = libvlc_media_new_location(instance, ch_arr);
-//    libvlc_media_player_set_media(mp, m);
-    libvlc_media_player_play (mp);
+        avformat_network_init();
+        av_register_all();      //rejestrowanie wszystkich dostępnych formatów i kodeków w celu automatycznego wiązania ich ze strumieniem wideo
 
-    printf("opóźnienie: %d \n", libvlc_audio_get_delay(mp));
-    qDebug()<<"program działa"+libvlc_audio_get_delay(mp);
+        if(avformat_open_input(&formatContext, url.toUtf8().data(), NULL, NULL)!=0)
+        {
+            cout<<"Błąd otwierania strumienia"<<endl;
+            emit returnError(ErrorEnums::CREDENTIALS_ERROR);
+//            exit(-1);
+//            return -1;
+        }
+        else
+        {
+            if(avformat_find_stream_info(formatContext, NULL)<0)
+            {
+                cout<<"Nie można znaleźć informacji o strumieniu";
+    //            return -1;
+            }
+
+            av_dump_format(formatContext, 0, url.toUtf8().data(), 0);
+
+            videoStream = -1;
+
+            videoStream = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+
+
+            if(videoStream==-1)
+            {
+//                return -1;      //nie znaleziono strumienia wideo
+            }
+
+            codecContextOriginal = formatContext->streams[videoStream]->codec;
+
+            codec = avcodec_find_decoder(codecContextOriginal->codec_id);
+            if(codec==NULL)
+            {
+                cout<<"Nie wspierany kodek";
+                stopVideo();
+    //            return -1;
+            }
+
+            codecContext = avcodec_alloc_context3(codec);
+            if(avcodec_copy_context(codecContext, codecContextOriginal)!=0)
+            {
+                cout<<"Nie można skopiować CodecContext";
+    //            return -1;
+            }
+
+            if(avcodec_open2(codecContext, codec, NULL)<0)
+            {
+                cout<<"Nie można otworzyć kodeka";
+    //            return -1;
+            }
+
+            frame = av_frame_alloc();
+            frameRGB = av_frame_alloc();
+
+            if(frameRGB==NULL){
+    //            return -1;
+            }
+
+            iloscBajtow = avpicture_get_size(AV_PIX_FMT_RGB24, codecContext->width, codecContext->height);
+
+            bufor = (uint8_t *)av_malloc(iloscBajtow*sizeof(uint8_t));
+
+            avpicture_fill((AVPicture *)frameRGB, bufor, AV_PIX_FMT_RGB24, codecContext->width, codecContext->height);
+
+            sws_ctx = sws_getContext(
+                    codecContext->width,
+                    codecContext->height,
+                    codecContext->pix_fmt,
+                    codecContext->width,
+                    codecContext->height,
+                    PIX_FMT_RGB24,
+                    SWS_BILINEAR,
+                    NULL,
+                    NULL,
+                    NULL
+                    );
+
+            i=0;
+
+            while(av_read_frame(formatContext, &packet)>=0)
+            {
+                if(packet.stream_index==videoStream)
+                {
+                    avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
+
+                    if(frameFinished)
+                    {
+                        cout<<frame->key_frame;
+                        sws_scale(
+                                sws_ctx, (uint8_t const * const *)frame->data,
+                                frame->linesize, 0, codecContext->height,
+                                frameRGB->data, frameRGB->linesize
+                                );
+                        
+                        QString tmpText(codecContext->codec_name);
+                        qDebug()<<codecContext->width;
+                        emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
+                        
+                        break;
+                    }
+
+                }
+
+                av_packet_unref(&packet);
+            }
+
+        }
+
 }
 
+
+
+/**
+ * @brief VideoWorker::stopVideo
+ * Metoda wywoływana podczas zamykania wątku - zwalniane są wszystkie zasoby
+ */
 void VideoWorker::stopVideo()
 {
-    qDebug()<<"zaczynam zamykać";
-    libvlc_media_player_stop(mp);
-    qDebug()<<"zaczynam release playera";
-    libvlc_media_player_release(mp);
-    qDebug()<<"Zaczynam releasea libvlc";
-    libvlc_release(instance);
-    qDebug()<<"skończyłem zamykać";
+
+    av_frame_free(&frameRGB);
+    av_frame_free(&frame);
+
+    avcodec_close(codecContext);
+    avcodec_close(codecContextOriginal);
+
+    avformat_close_input(&formatContext);
+    avformat_network_deinit();
 }
-
-//void VideoThread::streamProcess()
-//{
-//    qDebug()<<"stream process";
-//    this->c= NULL;/*
-//    int frame, got_picture, len;
-//    AVFrame *picture;
-//    uint8_t inbuf[INBUF_SIZE + FF_INPUT_BUFFER_PADDING_SIZE];
-//    char buf[1024];
-//    AVPacket avpkt;*/
-
-////    avcodec_init();
-
-//    av_register_all();
-//    avformat_network_init();
-
-//    if(avformat_open_input(&c, "rtsp://admin:admin@192.168.8.10:554",NULL,NULL) != 0){
-//        return EXIT_FAILURE;
-//    }
-
-//    if(avformat_find_stream_info(c,NULL) < 0){
-//        return EXIT_FAILURE;
-//    }
-
-//    av_init_packet(&avpkt);
-
-
-//    memset(inbuf + INBUF_SIZE, 0, FF_INPUT_BUFFER_PADDING_SIZE);
-
-//    codec = avcodec_find_decoder(CODEC_ID_H264);
-//    if (!codec) {
-//        fprintf(stderr, "codec not found\n");
-//        exit(1);
-//    }
-
-//    c= avcodec_alloc_context3(codec);
-//    picture= avcodec_alloc_frame();
-
-//    if(codec->capabilities&CODEC_CAP_TRUNCATED) c->flags|= CODEC_FLAG_TRUNCATED;
-
-//    if (avcodec_open2(c, codec, NULL) < 0) {
-//        fprintf(stderr, "could not open codec\n");
-//        exit(1);
-//    }
-
-//    qDebug()<<"jestem tutaj";
-//    frame=0;
-//    for(;;){
-//        avpkt.data = inbuf;
-//            while (avpkt.size > 0) {
-//                len = avcodec_decode_video2(c, picture, &got_picture, &avpkt);
-//                if (len < 0) {
-//                    fprintf(stderr, "Error while decoding frame %d\n", frame);
-//                    exit(1);
-//                }
-//                if (got_picture) {
-//                    printf("saving frame %3d\n", frame);
-//                    fflush(stdout);
-
-//                    /* the picture is allocated by the decoder. no need to
-//                       free it */
-////                    snprintf(buf, sizeof(buf), outfilename, frame);
-////                    pgm_save(picture->data[0], picture->linesize[0], c->width, c->height, buf);
-//                    frame++;
-//                }
-//                avpkt.size -= len;
-//                avpkt.data += len;
-//            }
-//    }
-
-//    qDebug()<<"a teraz tutaj";
-
-//    len = avcodec_decode_video2(c, picture, &got_picture, &avpkt);
-//        if (got_picture) {
-//            printf("saving last frame %3d\n", frame);
-//            fflush(stdout);
-
-////            qDebug()<<QString::number(c->bit_rate);
-
-//            /* the picture is allocated by the decoder. no need to
-//               free it */
-////            snprintf(buf, sizeof(buf), outfilename, frame);
-////            pgm_save(picture->data[0], picture->linesize[0],c->width, c->height, buf);
-//            frame++;
-//        }
-
-////        fclose(f);
-
-
-//}
-
-//void VideoThread::test()
-//{
-//    AVFormatContext* context = avformat_alloc_context();
-////    AVCodecContext* ccontext = avcodec_alloc_context3();
-
-//    av_register_all();
-//    avformat_network_init();
-
-//    if(avformat_open_input(&context,url.toUtf8().data(),NULL,NULL) != 0){
-//        QThread::quit();
-////        return EXIT_FAILURE;
-//    }
-
-//    if(avformat_find_stream_info(context,NULL) < 0){
-//        QThread::quit();
-////        return EXIT_FAILURE;
-//    }
-
-//    AVPacket packet;
-//    av_init_packet(&packet);
-
-//    AVFormatContext* oc = avformat_alloc_context();
-
-//}

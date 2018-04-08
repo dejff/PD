@@ -1,5 +1,6 @@
 #include "pingworker.h"
 #include <QDebug>
+#include <qt5/QtCore/qobjectdefs.h>
 
 PingWorker::PingWorker(){
 
@@ -25,17 +26,14 @@ void PingWorker::sniff(const QString ip)
         cout<<"Błąd dodawania adresu IP - ping_host_add()\n"<<endl;
     }
 
-    qDebug()<<"ipAddr";
-
     if(ping_setopt(ping, PING_OPT_TIMEOUT, (void*)(&timeout)))
     {
         printf("Problem z konfiguracją opcji - ping_setopt");
-        emit pingReturnMessage("Brak połączenia z urządzeniem");
     }
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(doPing()), Qt::DirectConnection);
-    timer->start(1000);     //ping co 1 sekundę
+    timer->start(3000);     //ping co 1 sekundę
 
 }
 
@@ -45,7 +43,7 @@ void PingWorker::sniff(const QString ip)
  */
 void PingWorker::stopPing()
 {
-    pingReturnMessage("ZATRZYMANO");
+    pingReturnMessage(ErrorEnums::NO_ERROR);
     timer->stop();
     if(!latencies.empty()) latencies.clear();
     if(!jitters.empty()) jitters.clear();
@@ -57,20 +55,19 @@ void PingWorker::doPing()
     double sumLathency = 0, avgLathency = 0, sumJitter = 0, avgJitter = 0;
     if(ping_send(ping)<0)
     {
-        cout<<"Błąd wysyłania pinga: "<<ping_get_error(ping)<<endl;
+        emit pingReturnMessage(ErrorEnums::CONNECTION_ERROR);
+        cout<<"Błąd wysyłania pinga: ";
     }
 
     if(ping_send(ping)==0)      //nie otrzymano żadnej odpowiedzi na pinga - brak łączności
     {
-        cout<<"Problem z połączeniem";
+        emit pingReturnMessage(ErrorEnums::CONNECTION_ERROR);
     }
 
     for(iter=ping_iterator_get(ping); iter!=NULL; iter=ping_iterator_next(iter))
     {
         len = 100;
         ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, &len);
-        cout<<"Czas odpowiedzi: "<<latency<<endl;
-
 
         if(latencies.size()==NO_OF_SAMPLES)
         {
@@ -94,11 +91,9 @@ void PingWorker::doPing()
         }
 
     }
-    qDebug()<<jitters.size();
 
     for(jittIter = jitters.begin(); jittIter!=jitters.end(); ++jittIter)
     {
-        qDebug()<<*jittIter;
         sumJitter+=*jittIter;
     }
     for(latIter = latencies.begin(); latIter!=latencies.end(); ++latIter)
@@ -108,7 +103,6 @@ void PingWorker::doPing()
 
     avgLathency=sumLathency/latencies.size();
     avgJitter=sumJitter/jitters.size();
-    qDebug()<<"Suma jittera: "+QString::number(sumJitter);
-    qDebug()<<"Średnia jittera: "+QString::number(avgJitter);
-
+    
+    emit sendParams(avgLathency, avgJitter);
 }

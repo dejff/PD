@@ -38,28 +38,35 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->videoLabel->setPixmap(QPixmap(absFilePath));                            //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
     ui->videoLabel->setScaledContents(true);
 
+    //REJESTROWANIE TYPÓW WŁASNYCH
+    qRegisterMetaType<ErrorEnums>("ErrorEnums");
+    qRegisterMetaType<Mat>("Mat");
+    
     //INICJALIZACJA KLAS WORKERÓW DLA WĄTKÓW
     pingWorker = new PingWorker;
     pingWorker->moveToThread(&pingThread);
     opencvWorker = new OpencvWorker;
     opencvWorker->moveToThread(&openCvThread);
     videoWorker = new VideoWorker;
-    videoWorker->moveToThread(videoThread);
+    videoWorker->moveToThread(&videoThread);
 
     //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW - ZAMYKANIE WĄTKÓW
     connect(&pingThread, SIGNAL(finished()), pingWorker, SLOT(stopPing()));
     connect(&openCvThread, SIGNAL(finished()), opencvWorker, SLOT(stopCapture()));
-    connect(&videoThread, SIGNAL(finished()), videoWorker, SLOT());
+    connect(opencvWorker, SIGNAL(capStopped()), this, SLOT(checkCapStopped()));
+    connect(&videoThread, SIGNAL(finished()), videoWorker, SLOT(stopVideo()));
 
     //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
     connect(this, SIGNAL(capturePing(QString)), pingWorker, SLOT(sniff(QString))) ;
     connect(this, SIGNAL(playStream(QString)), opencvWorker, SLOT(capture(QString)));
+    connect(this, SIGNAL(runVideoCodec(QString)), videoWorker, SLOT(processVideo(QString)));
 
     //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
-    connect(pingWorker, SIGNAL(pingReturnMessage(QString)), this, SLOT(checkPing(QString)));
+    connect(pingWorker, SIGNAL(pingReturnMessage(ErrorEnums)), this, SLOT(checkPing(ErrorEnums)));
+    connect(pingWorker, SIGNAL(sendParams(double, double)), this, SLOT(getPingParams(double, double)));
     connect(opencvWorker, SIGNAL(openCvReturnMsg(QString)), this, SLOT(checkVideoStream(QString)));
-    qRegisterMetaType<Mat>("Mat");
     connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
+    connect(videoWorker, SIGNAL(sendVideoParams(int, int, QString)), this, SLOT(getVideoInfo(int, int, QString)));
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
@@ -133,20 +140,44 @@ void MainWindow::on_start_cap_button_clicked()
         ui->protocolType->setDisabled(true);
         ui->ip_addr->setDisabled(true);
         ui->portField->setDisabled(true);
+        ui->nameCheckBox->setDisabled(true);
+        ui->portCheckBox->setDisabled(true);
+        ui->checkBox->setDisabled(true);
+
+
         //URUCHAMIANIE WSZYSTKICH WĄTKÓW
+        
         capturePing(ui->ip_addr->text());
         pingThread.start();
 
-        playStream(url);
-        openCvThread.start();
-//        videoThread = new VideoThread(url, ui);                 //do tego wątku przekazywany jest sparsowany adres url urządzenia
-//        socketThread = new SocketThread(ui);
+        
+        //Sprawdzanie czy jest połączenie z kamerą
+        if(connectionError==ErrorEnums::CONNECTION_ERROR)
+        {
+            msg.setText("Urządzenie o podanym IP nie odpowiada");
+        }
+        else
+        {
+            runVideoCodec(url);
+            videoThread.start();
+            
+            //Sprawdzenie czy wpisane hasło i login są poprawne
+            if(credentialError==ErrorEnums::CREDENTIALS_ERROR)
+            {
+                msg.setText("Problem z uwierzytelnieniem");
+            }
+            else
+            {
+                playStream(url);
+                openCvThread.start();
+            }
+            
+        }
 
         ui->status_label->setText("Program działa");
-//        capturePing(ui->ip_addr->text());
 
         //uruchomienie funkcji sprawdzającej stan wątków
-//        timer->start(200);
+        timer->start(200);
     }
 
 }
@@ -162,7 +193,6 @@ void MainWindow::on_stop_cap_button_clicked()
 
 
     ui->status_label->setText("Zatrzymano");
-
     ui->stop_cap_button->setEnabled(false);
     ui->start_cap_button->setEnabled(true);
 
@@ -187,23 +217,12 @@ void MainWindow::on_stop_cap_button_clicked()
         qDebug()<<"opencv thr. zamknięty i usunięty";
     }
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
-//    if(videoThread->isRunning()){
-//        qDebug()<<"video thr. zamykanie";
-//        videoThread->stopVideo();
-//        videoThread->quit();
-//        videoThread->wait();
-//        qDebug()<<"video thr. zamknięty";
-//        qDebug()<<"usunięte video";
-//    }
+    if(videoThread.isRunning()){
+        videoThread.quit();
+        videoThread.wait();
+        qDebug()<<"video thr. zamknięty";
+    }
 
-//    if(openCvThread.isFinished()){
-//      qDebug()<<absFilePath;
-//        ui->videoLabel->setPixmap(QPixmap(absFilePath));
-//    }
-//    ui->videoLabel->setScaledContents(true);
-//    ui->videoLabel->setPixmap(QPixmap(absFilePath));
-
-    //        pingThread->stopPing();
     if(ui->nameCheckBox->isChecked()){
         ui->nameField->setDisabled(false);
     }
@@ -216,6 +235,10 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->protocolType->setDisabled(false);
     ui->ip_addr->setDisabled(false);
     ui->portField->setDisabled(false);
+    ui->nameCheckBox->setDisabled(false);
+    ui->portCheckBox->setDisabled(false);
+    ui->checkBox->setDisabled(false);
+    
 }
 
 /**
@@ -227,9 +250,6 @@ void MainWindow::sendFrame(int code)
 {
     //do dokończenia
     qDebug()<<"code sent: "+QString::number(code);
-//    qDebug()<<"opencv "+QString(opencvThread->isFinished() ? "false" : "true")+"\n";
-//    qDebug()<<"ping "+QString(pingThread->isFinished() ? "false" : "true")+"\n";
-//    qDebug()<<"sock "+QString(socketThread->isFinished() ? "false" : "true")+"\n";
 }
 
 /**
@@ -242,9 +262,8 @@ void MainWindow::checkThreads()
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
     //na podstawie tego jaki wątek został zatrzymany zostanie wyemitowany odpowiedni pakiet z informacją o błędzie
-//    if(pingThread->isFinished() || videoThread->isFinished() || opencvThread->isFinished()){
-
-        QMessageBox msg;
+    if(pingThread.isFinished() || videoThread.isFinished() || openCvThread.isFinished()){
+        qDebug()<<"Jest błąd";
 //        qDebug()<<"opencv thread work: "+QString(opencvThread->isFinished() ? "false" : "true")+"\n";
 //        timer->stop();
 //        if(pingThread->isFinished()){
@@ -278,7 +297,7 @@ void MainWindow::checkThreads()
 //                msg.exec();
 //            }
 //        }
-//    }
+    }
 }
 
 /**
@@ -322,9 +341,15 @@ void MainWindow::checkVideoStream(QString string){
     qDebug()<<string;
 }
 
-void MainWindow::checkPing(QString string)
+void MainWindow::checkPing(ErrorEnums err)
 {
-    qDebug()<<string;
+    if(err==ErrorEnums::CONNECTION_ERROR){
+        msg.setText("Docelowy adres jest nieosiągalny");
+        msg.exec();
+        pingThread.quit();
+        pingThread.wait();
+        on_stop_cap_button_clicked();
+    }
 }
 
 void MainWindow::checkFreezeThread(QString string){
@@ -337,4 +362,32 @@ void MainWindow::getVideoFrame(Mat frame)
     ui->videoLabel->setScaledContents(true);
     ui->videoLabel->setPixmap(QPixmap::fromImage(img));
     ui->videoLabel->resize(ui->videoLabel->pixmap()->size());
+}
+
+void MainWindow::checkCapStopped()
+{
+    ui->videoLabel->setPixmap(QPixmap(absFilePath));
+    ui->videoLabel->setScaledContents(true);
+}
+
+void MainWindow::credentialsCheck(ErrorEnums err)
+{
+    connectionError = err;
+    if(err==ErrorEnums::CREDENTIALS_ERROR)
+    {
+        qDebug()<<"Błąd poświadczeń";
+    }
+}
+
+void MainWindow::getPingParams(double lathency, double jitter)
+{
+    !isnan(jitter) ? jitter : jitter=0.0;
+    ui->jitterLabel->setText(QString::number(jitter));
+    ui->lathency_label->setText(QString::number(lathency));
+}
+
+void MainWindow::getVideoInfo(int width, int height, QString codec)
+{
+    ui->resolutionLabel->setText(width+"x"+height);
+    ui->codec_label->setText(codec);
 }

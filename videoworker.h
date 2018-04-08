@@ -7,38 +7,52 @@
 #include "ui_mainwindow.h"
 #include "libavutil/mathematics.h"
 #include <stdio.h>
+#include <iostream>
+#include "errorenums.h"
+#include <QDebug>
+
+using namespace std;
 
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libswscale/swscale.h>
 }
 
-#define INBUF_SIZE 4096
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
+#define av_frame_alloc avcodec_alloc_frame
+#define av_frame_free avcodec_free_frame
+#endif
 
 class VideoWorker: public QObject{
+
+    Q_OBJECT
 public:
-    VideoWorker(QString url, Ui::MainWindow *ui);
+    VideoWorker();
     ~VideoWorker();
 private:
-    Ui::MainWindow *ui;
-    libvlc_instance_t *instance;
-    libvlc_media_t *m;
-    libvlc_media_player_t *mp;
+    AVFormatContext *formatContext = NULL;
+    AVCodecContext *codecContextOriginal = NULL;
+    AVCodecContext *codecContext = NULL;
+    AVCodec *codec = NULL;
+    AVFrame *frame = NULL;
+    AVFrame *frameRGB = NULL;
+    AVPacket packet;
+    int frameFinished;
+    char *stream;
+    int videoStream, i, iloscBajtow;
+    uint8_t *bufor = NULL;
+    struct SwsContext *sws_ctx = NULL;
     QString url;
-    AVCodec *codec;
-    AVCodecContext *c;
-    int frame, got_picture, len;
-    AVFrame *picture;
-    uint8_t inbuf[INBUF_SIZE + FF_INPUT_BUFFER_PADDING_SIZE];
-    char buf[1024];
-    AVPacket avpkt;
 
 public slots:
     void stopVideo();
-    void processVideo();
+    void processVideo(const QString url);
 signals:
-
+    void returnData();
+    void returnError(const ErrorEnums err);
+    void sendVideoParams(const int width, const int height, const QString codec);
 };
 
 #endif // VIDEOTHREAD_H

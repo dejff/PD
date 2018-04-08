@@ -1,0 +1,9 @@
+#ifndef ERRORENUMS_H
+#define ERRORENUMS_H
+
+enum class ErrorEnums
+{
+    CONNECTION_ERROR, FREEZE_ERROR, CREDENTIALS_ERROR, NO_ERROR
+};
+
+#endif // ERRORENUMS_H

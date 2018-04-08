@@ -21,8 +21,6 @@ OpencvWorker::~OpencvWorker()
 void OpencvWorker::capture(const QString url)
 {
     qDebug()<<"Start capture";
-    mutex.lock();
-    mutex.unlock();
     cap.open(url.toUtf8().data());
     if(!cap.isOpened()){
         qDebug()<<"nie działa, cap zamknięty";
@@ -45,13 +43,8 @@ void OpencvWorker::tick()
  */
 void OpencvWorker::stopCapture()
 {
-    qDebug()<<"Zatrzumuję opencv";
-    qDebug()<<"/home/dawid/Inzynierka/no_video.jpg";
-//    Mat noSignalImg = imread("/home/dawid/Inzynierka/no_video.jpg", IMREAD_ANYCOLOR);
     frameTimer->stop();
-//    emit returnFrame(noSignalImg);
     cap.release();
     qDebug()<<"opencv zatrzymany";
-//    ui->videoLabel->setPixmap(QPixmap::fromImage());
-//    ui->resolutionLabel->setText("");
+    emit capStopped();
 }

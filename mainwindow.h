@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
 #include <QFileInfo>
+#include <cmath>
 
 using namespace cv;
 namespace Ui {
@@ -39,12 +40,19 @@ private slots:
 
 public slots:
     //SLOTY NASŁUCHUJĄCE INFORMACJI ZWROTNEJ Z WĄTKÓW O TYM CZY WYSTĄPIŁ JAKIŚ BŁĄD
-    void checkPing(QString string);
+    void checkPing(ErrorEnums err);
     void checkVideoStream(QString string);
     void checkFreezeThread(QString string);
     void getVideoFrame(Mat frame);
+    void checkCapStopped();
+    void credentialsCheck(ErrorEnums err);
+    void getPingParams(double lathency, double jitter);
+    void getVideoInfo(int width, int height, QString codec);
 
 private:
+    QMutex mutex;
+    QMessageBox msg;
+    ErrorEnums credentialError, connectionError;
     QImage img;
     QString port, url, credentials, absFilePath;
     Ui::MainWindow *ui;
@@ -62,6 +70,7 @@ signals:
     //SYGNAŁY PRZESYŁAJĄCE SYGNAŁY DO WĄTKÓW PODCZAS INICJALIZACJI
     void capturePing(const QString &);
     void playStream(const QString &);
+    void runVideoCodec(const QString &);
 };
 
 #endif // MAINWINDOW_H
