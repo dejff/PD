@@ -10,6 +10,7 @@
 #include <iostream>
 #include "errorenums.h"
 #include <QDebug>
+#include <QTimer>
 
 using namespace std;
 
@@ -45,7 +46,11 @@ private:
     uint8_t *bufor = NULL;
     struct SwsContext *sws_ctx = NULL;
     QString url;
+    QTimer *timer;
 
+private slots:
+//    void grabFrame();
+    
 public slots:
     void stopVideo();
     void processVideo(const QString url);

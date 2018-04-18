@@ -1,7 +1,9 @@
 #ifndef SOCKETTHREAD_H
 #define SOCKETTHREAD_H
 
-#include <QThread>
+
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -11,22 +13,28 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 
-#define PORT 58
 
-class SocketWorker: public QThread
+
+class SocketWorker: public QObject
 {
     Q_OBJECT
 public:
-    SocketWorker(Ui::MainWindow *ui);
-    void run() override;
-    void waitForRequest();
+    SocketWorker();
+    ~SocketWorker();
 private:
-    int opt = 1;
-    Ui::MainWindow *ui;
-    int socket_descriptor, new_socket, valread, portnumber;
-    char buffer[1024];
-    struct sockaddr_in server;
-    int address_len = sizeof(server);
+    QTcpServer *server;
+    QTcpSocket *socket;
+    QString response;
+    
+public slots:
+    void waitForRequest(const QString port);
+    void gotCurrentParams(const QString response);
+    void closeSocket();
+    void newConnection();
+    
+signals:
+    void requestParams();
+        
 };
 
 #endif // SOCKETTHREAD_H

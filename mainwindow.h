@@ -7,13 +7,17 @@
 #include "pingworker.h"
 #include "videoworker.h"
 #include "opencvworker.h"
-#include "socketworker.h"
+//#include "socketworker.h"
 #include "freezeworker.h"
 #include <QTimer>
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
 #include <QFileInfo>
 #include <cmath>
+#include <QTcpServer>
+#include <QTcpSocket>
+
+#define DEFAULT_PORT "50000"
 
 using namespace cv;
 namespace Ui {
@@ -28,6 +32,7 @@ public:
     const QString IMAGE_PATH = "./no_video.jpg";
     explicit MainWindow(QWidget *parent = 0);
     void sendFrame(int code);
+    void waitForRequest(QString port);
     ~MainWindow();
 
 private slots:
@@ -37,11 +42,12 @@ private slots:
     void checkBoxClicked();
     void portCheckBoxClicked();
     void nameCheckBoxClicked();
+    void newConnection();
 
 public slots:
     //SLOTY NASŁUCHUJĄCE INFORMACJI ZWROTNEJ Z WĄTKÓW O TYM CZY WYSTĄPIŁ JAKIŚ BŁĄD
     void checkPing(ErrorEnums err);
-    void checkVideoStream(QString string);
+    void checkVideoStream(ErrorEnums err);
     void checkFreezeThread(QString string);
     void getVideoFrame(Mat frame);
     void checkCapStopped();
@@ -50,19 +56,23 @@ public slots:
     void getVideoInfo(int width, int height, QString codec);
 
 private:
+    QTcpServer *server;
+    QTcpSocket *socket;
+    QString response;
     QMutex mutex;
     QMessageBox msg;
-    ErrorEnums credentialError, connectionError;
+    ErrorEnums credentialError, connectionError, freezeError;
     QImage img;
     QString port, url, credentials, absFilePath;
+    QString jitterVal, lathencyVal, codecVal, resolutionVal, ipVal, portVal;
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
     QShortcut *stopShortcut;
     PingWorker *pingWorker;
     OpencvWorker *opencvWorker;
-//    FreezeWorker *freezeWorker;
+//    FreezeWorker *freezeWorker;       //tu jest problem ze strumieniem z innego komputera
     VideoWorker *videoWorker;
-//    SocketThread *socketWorker;
+//    SocketWorker *socketWorker;
     QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
     QThread pingThread, openCvThread, videoThread, socketThread, freezeThread;
 
@@ -71,6 +81,8 @@ signals:
     void capturePing(const QString &);
     void playStream(const QString &);
     void runVideoCodec(const QString &);
+    void listenSocket(const QString &);
+    void parametersResponse(const QString &);
 };
 
 #endif // MAINWINDOW_H

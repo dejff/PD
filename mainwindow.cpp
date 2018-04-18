@@ -6,6 +6,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    connectionError = ErrorEnums::NO_ERROR;
+    credentialError = ErrorEnums::NO_ERROR;
+    freezeError = ErrorEnums::NO_ERROR;
+
+    server = new QTcpServer(this);
     QValidator *portValidator = new QIntValidator(0, 65535, this);      //zdefiniowanie walidatora dla pola port zakres od 0 do 65535
     ui->setupUi(this);
     this->setFixedHeight(this->height());
@@ -13,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
     ui->listenPort->setValidator(portValidator);
     QStringList connectionTypes;
-    connectionTypes << "RTSP"<<"UDP";
+    connectionTypes << "RTSP"<< "UDP" << "HTTP";
     ui->portCheckBox->setChecked(false);
     ui->listenPort->setDisabled(true);
     ui->checkBox->setChecked(false);                    //ustawienie wartości początkowych dla pól hasło, login i checkboxa
@@ -38,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->videoLabel->setPixmap(QPixmap(absFilePath));                            //załadowanie obrazka wyświetlanego w sytuacji kiedy, nie jest wyświetlany obraz ze strumienia wideo
     ui->videoLabel->setScaledContents(true);
 
+
+
     //REJESTROWANIE TYPÓW WŁASNYCH
     qRegisterMetaType<ErrorEnums>("ErrorEnums");
     qRegisterMetaType<Mat>("Mat");
@@ -49,12 +56,15 @@ MainWindow::MainWindow(QWidget *parent) :
     opencvWorker->moveToThread(&openCvThread);
     videoWorker = new VideoWorker;
     videoWorker->moveToThread(&videoThread);
+//    socketWorker = new SocketWorker;
+//    socketWorker->moveToThread(&socketThread);
 
     //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW - ZAMYKANIE WĄTKÓW
     connect(&pingThread, SIGNAL(finished()), pingWorker, SLOT(stopPing()));
     connect(&openCvThread, SIGNAL(finished()), opencvWorker, SLOT(stopCapture()));
     connect(opencvWorker, SIGNAL(capStopped()), this, SLOT(checkCapStopped()));
     connect(&videoThread, SIGNAL(finished()), videoWorker, SLOT(stopVideo()));
+//    connect(&socketThread, SIGNAL(finished()), socketWorker, SLOT(closeSocket()));  //do wywalenia - nie ma tego wątku
 
     //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
     connect(this, SIGNAL(capturePing(QString)), pingWorker, SLOT(sniff(QString))) ;
@@ -64,9 +74,13 @@ MainWindow::MainWindow(QWidget *parent) :
     //POŁĄCZENIE METOD OCZEKUJĄCYCH NA INFORMACJĘ ZWROTNĄ Z WĄTKÓW
     connect(pingWorker, SIGNAL(pingReturnMessage(ErrorEnums)), this, SLOT(checkPing(ErrorEnums)));
     connect(pingWorker, SIGNAL(sendParams(double, double)), this, SLOT(getPingParams(double, double)));
-    connect(opencvWorker, SIGNAL(openCvReturnMsg(QString)), this, SLOT(checkVideoStream(QString)));
+    connect(opencvWorker, SIGNAL(openCvReturnMsg(ErrorEnums)), this, SLOT(checkVideoStream(ErrorEnums)));
     connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
     connect(videoWorker, SIGNAL(sendVideoParams(int, int, QString)), this, SLOT(getVideoInfo(int, int, QString)));
+    
+    //POŁĄCZENIE SLOTU SERVERA Z FUNKCJĄ ZWRACAJĄCĄ INFORMACJE O STANIE URZĄDZENIA
+    connect(server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
@@ -77,6 +91,8 @@ MainWindow::~MainWindow()
     delete ui;
     delete pingWorker;
     delete opencvWorker;
+//    delete socketWorker;
+    delete videoWorker;
 }
 
 /**
@@ -107,8 +123,10 @@ void MainWindow::on_start_cap_button_clicked()
 
         if(ui->protocolType->currentText()=="RTSP"){
             url = "rtsp://";
-        }else{
+        }else if(ui->protocolType->currentText()=="RTSP"){
             url = "udp://";
+        }else{
+            url = "http://";
         }
 
         if(!ui->portField->text().isEmpty()){
@@ -137,6 +155,10 @@ void MainWindow::on_start_cap_button_clicked()
             ui->loginField->setDisabled(true);
         }
 
+        if(ui->portCheckBox->isChecked()){
+            ui->portField->setDisabled(true);
+        }
+
         ui->protocolType->setDisabled(true);
         ui->ip_addr->setDisabled(true);
         ui->portField->setDisabled(true);
@@ -151,13 +173,15 @@ void MainWindow::on_start_cap_button_clicked()
         pingThread.start();
 
         
-        //Sprawdzanie czy jest połączenie z kamerą
+        //Sprawdzanie czy jest połączenie z kamerą - odpowiada na ping
         if(connectionError==ErrorEnums::CONNECTION_ERROR)
         {
+            qDebug()<<"TEST1";
             msg.setText("Urządzenie o podanym IP nie odpowiada");
         }
         else
         {
+            qDebug()<<"TEST2";
             runVideoCodec(url);
             videoThread.start();
             
@@ -170,6 +194,19 @@ void MainWindow::on_start_cap_button_clicked()
             {
                 playStream(url);
                 openCvThread.start();
+                
+                if(!ui->portField->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
+                {
+                    waitForRequest(ui->portField->text());
+//                    listenSocket(ui->portField->text());
+                }
+                else
+                {
+                    waitForRequest(DEFAULT_PORT);
+//                    listenSocket(DEFAULT_PORT);
+                }
+                socketThread.start();
+                
             }
             
         }
@@ -197,11 +234,10 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->start_cap_button->setEnabled(true);
 
     //zakończenie wątka nasłuchującego żądań z sieci
-//    if(socketThread->isRunning()){
-//        socketThread->quit();
-//        socketThread->wait();
-//        delete socketThread;
-//    }
+    if(socketThread.isRunning()){
+        socketThread.quit();
+        socketThread.wait();
+    }
 
     //zakończenie wątka pingującego urządzenie
     if(pingThread.isRunning()){
@@ -230,6 +266,10 @@ void MainWindow::on_stop_cap_button_clicked()
     if(ui->checkBox->isChecked()){
         ui->passwordField->setDisabled(false);
         ui->loginField->setDisabled(false);
+    }
+
+    if(ui->portCheckBox->isChecked()){
+        ui->portField->setDisabled(false);
     }
 
     ui->protocolType->setDisabled(false);
@@ -337,8 +377,17 @@ void MainWindow::nameCheckBoxClicked()
 	}
 }
 
-void MainWindow::checkVideoStream(QString string){
-    qDebug()<<string;
+void MainWindow::checkVideoStream(ErrorEnums err){
+
+    if(err==ErrorEnums::FREEZE_ERROR)
+    {
+        msg.setText("Wykryto zamrożenie obrazu");
+        msg.exec();
+//        openCvThread.quit();
+//        openCvThread.wait();
+//        on_stop_cap_button_clicked();
+    }
+
 }
 
 void MainWindow::checkPing(ErrorEnums err)
@@ -384,10 +433,53 @@ void MainWindow::getPingParams(double lathency, double jitter)
     !isnan(jitter) ? jitter : jitter=0.0;
     ui->jitterLabel->setText(QString::number(jitter));
     ui->lathency_label->setText(QString::number(lathency));
+    lathencyVal = QString::number(lathency);
+    jitterVal = QString::number(jitter);
 }
 
 void MainWindow::getVideoInfo(int width, int height, QString codec)
 {
-    ui->resolutionLabel->setText(width+"x"+height);
+    ui->resolutionLabel->setText(QString::number(width)+"x"+QString::number(height));
     ui->codec_label->setText(codec);
+    resolutionVal = QString::number(width)+"x"+QString::number(height);
+    codecVal = codec;
+}
+
+void MainWindow::waitForRequest(QString socPort)
+{
+
+
+    if(!server->listen(QHostAddress::Any, 50000))
+    {
+        qDebug()<<"Serwer nie został uruchomiony";
+    }
+    else
+    {
+        qDebug()<<"Serwer uruchomiony";
+    }
+}
+
+
+void MainWindow::newConnection()
+{
+
+    response = "";
+    qDebug()<<"test tcp";
+    mutex.lock();
+    response = "Adres IP urządzenia: "+ui->ip_addr->text()+
+            "\nPort: "+(ui->portField->text().trimmed().isEmpty() ? "domyślny" : ui->portField->text())+
+            "\nRozdzielczość: "+resolutionVal+
+            "\nKodek: "+codecVal+
+            "\nPing: "+lathencyVal+
+            "\nJitter: "+jitterVal+"\n"
+            ;
+    QTcpSocket *socket = server->nextPendingConnection();
+
+    socket->write(response.toUtf8());
+    socket->flush();
+
+    socket->waitForBytesWritten(3000);
+    mutex.unlock();
+
+    socket->close();
 }

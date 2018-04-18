@@ -6,6 +6,7 @@
 #include "ui_mainwindow.h"
 #include <QErrorMessage>
 #include <QMutex>
+#include "errorenums.h"
 
 using namespace cv;
 
@@ -17,6 +18,7 @@ public:
     OpencvWorker();
     ~OpencvWorker();
 private:
+    int counter;
     QMutex mutex;
     bool isStopPushed;
     QTimer *frameTimer;
@@ -24,14 +26,15 @@ private:
     Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;
-    Mat frame;
+    Mat frame, compareFrame1, compareFrame2;
+    bool compareFrames(Mat frame1, Mat frame2);
 public slots:
     void capture(const QString url);
     void stopCapture();
     void tick();
 signals:
     void returnFrame(const Mat frame);
-    void openCvReturnMsg(const QString msg);
+    void openCvReturnMsg(const ErrorEnums err);
     void capStopped();
 };
 

@@ -4,7 +4,7 @@
 
 VideoWorker::VideoWorker()
 {
-
+    timer = new QTimer(this);
 }
 
 VideoWorker::~VideoWorker()
@@ -12,21 +12,43 @@ VideoWorker::~VideoWorker()
 
 }
 
+//void VideoWorker::grabFrame()
+//{
+//    while(av_read_frame(formatContext, &packet)>=0)
+//            {
+//        qDebug()<<"TEST!@#";
+//                if(packet.stream_index==videoStream)
+//                {
+//                    qDebug()<<"test123123";
+//                    avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
+//
+//                    if(frameFinished)
+//                    {
+//                        qDebug()<<"koniec ramki";
+//                        cout<<frame->key_frame;
+//                        sws_scale(
+//                                sws_ctx, (uint8_t const * const *)frame->data,
+//                                frame->linesize, 0, codecContext->height,
+//                                frameRGB->data, frameRGB->linesize
+//                                );
+//                        
+//                        QString tmpText(codecContext->codec_name);
+//                        emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
+//                        
+//                        break;
+//                    }
+//
+//                }
+//
+//                av_packet_unref(&packet);
+//            }
+//}
+
 void VideoWorker::processVideo(const QString url)
 {
-    qDebug()<<"test";
-    AVFormatContext *formatContext = NULL;
-        AVCodecContext *codecContextOriginal = NULL;
-        AVCodecContext *codecContext = NULL;
-        AVCodec *codec = NULL;
-        AVFrame *frame = NULL;
-        AVFrame *frameRGB = NULL;
-        AVPacket packet;
-        int frameFinished;
-        int videoStream, i, iloscBajtow;
-        uint8_t *bufor = NULL;
-        struct SwsContext *sws_ctx = NULL;
-
+    
+//    connect(timer, SIGNAL(timeout()), this, SLOT(grabFrame()), Qt::DirectConnection);
+    
         avformat_network_init();
         av_register_all();      //rejestrowanie wszystkich dostępnych formatów i kodeków w celu automatycznego wiązania ich ze strumieniem wideo
 
@@ -34,8 +56,6 @@ void VideoWorker::processVideo(const QString url)
         {
             cout<<"Błąd otwierania strumienia"<<endl;
             emit returnError(ErrorEnums::CREDENTIALS_ERROR);
-//            exit(-1);
-//            return -1;
         }
         else
         {
@@ -45,6 +65,9 @@ void VideoWorker::processVideo(const QString url)
     //            return -1;
             }
 
+            
+            //WYŚWIETLENIE WSZYSTKIEGO W STRUMIENIU BŁĘDÓW
+            
             av_dump_format(formatContext, 0, url.toUtf8().data(), 0);
 
             videoStream = -1;
@@ -107,6 +130,8 @@ void VideoWorker::processVideo(const QString url)
                     );
 
             i=0;
+            
+//            timer->start(1000);      //co sekundę będą gromadzone informacje ze strumienia
 
             while(av_read_frame(formatContext, &packet)>=0)
             {
@@ -123,10 +148,10 @@ void VideoWorker::processVideo(const QString url)
                                 frameRGB->data, frameRGB->linesize
                                 );
                         
-                        QString tmpText(codecContext->codec_name);
-                        qDebug()<<codecContext->width;
+                        qDebug()<<codecContext->codec->name;
+                        QString tmpText(codecContext->codec->name);
                         emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
-                        
+                        qDebug()<<"Ramka";
                         break;
                     }
 
@@ -147,7 +172,6 @@ void VideoWorker::processVideo(const QString url)
  */
 void VideoWorker::stopVideo()
 {
-
     av_frame_free(&frameRGB);
     av_frame_free(&frame);
 
