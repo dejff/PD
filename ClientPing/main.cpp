@@ -14,26 +14,25 @@ using namespace std;
 int main(int argc, char* argv[])
 {
 
-    struct sockaddr_in address;
-    int sock, response, portnumber, strlength;
+    int sock, portnumber, strlength;
     struct sockaddr_in server_address;
     const char *request = "Pokaż kotku co masz w środku";       //ciąg znaków wysyłany z klienta do serwera po nawiązaniu połączenia
     char bufor[1024];
 
     if(argc<=3 && argc>1){        //maksymalnie 3 parametry
-        sock = socket(AF_INET, SOCK_STREAM, 0);     //próba zaincjalizowania socketu dla prptokołu IPv4, pakiety TCP
+        sock = socket(AF_INET, SOCK_STREAM, 0);     //próba zaincjalizowania socketu dla protokołu IPv4, pakiety TCP
         if(sock<0){
             cout<<"Błąd próby zaincjalozowania socketu"<<endl;
             return -1;
         }
 
         memset(&server_address, '0', sizeof(server_address));     //wyzerowanie pamięci przechowujacej adres
-        server_address.sin_family = AF_INET;
+        server_address.sin_family = AF_INET;                      //adres serwera ustawiony dla połączenia z wykorzystaniem protokołu IPv4
 
         if(3==argc){        //jeśli są dwa parametry to drugi jest portem
             portnumber = atoi(argv[2]);
         }else{
-            portnumber = PORT;         //
+            portnumber = PORT;         //jeśli nie podany zostanie trzeci parametr, to port ustawi się na 50000
         }
 
         server_address.sin_port = htons(portnumber);
@@ -57,12 +56,6 @@ int main(int argc, char* argv[])
         if(strlength<0) cout<<"Błąd odczytu z socketa";             //nie odczytano żadnych danych - błąd
 
         printf("%s\n", bufor);
-//        cout<<bufor;
-
-//        send(sock , request , strlen(request) , 0 );
-//        cout<<"Hello message sent\n"<<endl;
-//        response = read( sock , bufor, 1024);       //odczytywanie danych z socketu i zapisywanie do bufora
-        printf("%s\n",bufor );
 
     }else{
         cout<<"Zła ilość argumentów"<<endl;
@@ -70,7 +63,7 @@ int main(int argc, char* argv[])
         cout<<"Uruchamiać program z następującymi parametrami\n"<<endl;
         cout<<"./ClientPing <adres_ip> <port>\n"<<endl;
         cout<<"<adres_ip> - adres ip, urządzenia z oprogramowaniem nadzorującym\n"<<endl;
-        cout<<"<port>(opcjonalne) - port na który będzie wysyłane zapytanie, domyślnie 58"<<endl;
+        cout<<"<port>(opcjonalne) - port na który będzie wysyłane zapytanie, domyślnie 50000"<<endl;
     }
 
     return 0;

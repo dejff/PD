@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
     ui->listenPort->setValidator(portValidator);
     QStringList connectionTypes;
-    connectionTypes << "RTSP"<< "UDP" << "HTTP";
+    connectionTypes << "RTSP"<< "UDP" << "HTTP" <<"FREEZE TEST";
     ui->portCheckBox->setChecked(false);
     ui->listenPort->setDisabled(true);
     ui->checkBox->setChecked(false);                    //ustawienie wartości początkowych dla pól hasło, login i checkboxa
@@ -169,15 +169,21 @@ void MainWindow::on_start_cap_button_clicked()
 
         //URUCHAMIANIE WSZYSTKICH WĄTKÓW
         
+        //NAJPIERW SPRAWDZAMY CZY ADRES KTÓRY WPISALIŚMY JEST OSIĄGALNY - ODPOWIADA NA PING
         capturePing(ui->ip_addr->text());
         pingThread.start();
 
-        
+        if(ui->protocolType->currentText()=="FREEZE TEST")
+        {
+            url = "./lena.avi";
+        }
+
         //Sprawdzanie czy jest połączenie z kamerą - odpowiada na ping
         if(connectionError==ErrorEnums::CONNECTION_ERROR)
         {
             qDebug()<<"TEST1";
             msg.setText("Urządzenie o podanym IP nie odpowiada");
+            on_stop_cap_button_clicked();
         }
         else
         {
@@ -189,6 +195,7 @@ void MainWindow::on_start_cap_button_clicked()
             if(credentialError==ErrorEnums::CREDENTIALS_ERROR)
             {
                 msg.setText("Problem z uwierzytelnieniem");
+                on_stop_cap_button_clicked();
             }
             else
             {
@@ -198,12 +205,10 @@ void MainWindow::on_start_cap_button_clicked()
                 if(!ui->portField->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
                 {
                     waitForRequest(ui->portField->text());
-//                    listenSocket(ui->portField->text());
                 }
                 else
                 {
                     waitForRequest(DEFAULT_PORT);
-//                    listenSocket(DEFAULT_PORT);
                 }
                 socketThread.start();
                 

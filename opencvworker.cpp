@@ -24,6 +24,7 @@ void OpencvWorker::capture(const QString url)
     counter = 0;
     qDebug()<<"Start capture";
     cap.open(url.toUtf8().data());
+//    cap.open("/home/dawid/Dropbox/lena.avi");
     if(!cap.isOpened()){
         qDebug()<<"nie działa, cap zamknięty";
         emit openCvReturnMsg(ErrorEnums::CONNECTION_ERROR);
@@ -84,6 +85,7 @@ void OpencvWorker::tick()
             if(!compareFrames(compareFrame1, compareFrame2))
             {
                 qDebug()<<"TEST!@#";
+                frameTimer->stop();
                 emit returnFrame(frame);
             }
             else
