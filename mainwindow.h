@@ -65,7 +65,7 @@ private:
     ErrorEnums credentialError, connectionError, freezeError;
     QImage img;
     QString port, url, credentials, absFilePath;
-    QString jitterVal, lathencyVal, codecVal, resolutionVal, ipVal, portVal;
+    QString jitterVal, lathencyVal, codecVal, resolutionVal, ipVal, portVal, diffVal;
     Ui::MainWindow *ui;
     QShortcut *startShortcut;
     QShortcut *stopShortcut;

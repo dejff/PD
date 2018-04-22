@@ -137,28 +137,8 @@ bool OpencvWorker::compareFrames(Mat frame1, Mat frame2)
        }
     }
 
-    qDebug() << "The difference of the two pictures is " <<
-         (totaldiff * 100)  / (w * h * 3)  << " % !\n" ;
-
-    qDebug()<<"TEst";
     emit diffLevel(QString::number((totaldiff * 100)  / (w * h * 3)));
 
-
-//    Mat outFrame, diff1color, gray1, gray2, diffFrame;
-//    qDebug()<<"Porówanie";
-//    qDebug()<<&outFrameframe1.data;
-//    cvtColor(frame1, gray1, CV_BGR2GRAY);
-//    cvtColor(frame2, gray2, CV_BGR2GRAY);
-//    outFrame =  frame1 != frame2;
-
-//    std::equal(frame1.begin(), frame1.end(), frame2.begin());
-//    compare(gray1, gray2, outFrame, cv::CMP_NE);
-//    bool isEqual = (sum(frame1 != frame2) == Scalar(0,0,0,0));
-//    cv::cvtColor(outFrame, diff1color, CV_BGRA2GRAY, 1);
-//    qDebug()<<
-//    absdiff(frame1, frame2, outFrame);
-//    qDebug()<<outFrame.data;
-//    qDebug()<<(sum(frame1 != frame2) == Scalar(0,0,0,0));
 //    if(isEqual){
 //        qDebug()<<"Obrazy są takie same";
 //        frameTimer->stop();
@@ -169,21 +149,10 @@ bool OpencvWorker::compareFrames(Mat frame1, Mat frame2)
 //        absdiff(frame1, frame1, diffFrame);
 //        imwrite("diff.jpg", diffFrame);
 //    }
-//    imwrite("test1.jpg", frame1);
-//    imwrite("test2.jpg", frame2);
 
-//    absdiff(frame1, frame2, outFrame);
-//    qDebug()<<outFrame
-//    qDebug()<<"compare frames";
 //    if(frame1.rows==frame2.rows && frame1.cols==frame2.cols)      //jeśli obie ramki mają tyle samo weirszy i kolumn
 //    {
-////        qDebug()<<"Obie ramki mają taki sam rozmiar";
 
-////        subtract(compareFrame1, compareFrame2, outFrame);
-////        absdiff(frame1, frame2, outFrame);
-////        compare(compareFrame1, compareFrame2, outFrame, cv::CMP_NE);
-////        qDebug()<<"elemenmty nie zerowe";
-////        qDebug()<<countNonZero(compareFrame1!=compareFrame2);
 //        if(countNonZero(compareFrame1!=compareFrame2)==0){      //ilość nie zerowych elementów w macierzy jest równa zero,
 //                                            //czyli obie macierze były identyczne(obie ramki wideo są takie same) zamrożenie obrazu
 //            qDebug()<<"ramki są takie same";

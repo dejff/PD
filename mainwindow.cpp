@@ -479,7 +479,8 @@ void MainWindow::newConnection()
             "\nRozdzielczość: "+resolutionVal+
             "\nKodek: "+codecVal+
             "\nPing: "+lathencyVal+
-            "\nJitter: "+jitterVal+"\n"
+            "\nJitter: "+jitterVal+
+            "\nRóżnica ramek: "+diffVal+"\n"
             ;
     QTcpSocket *socket = server->nextPendingConnection();
 
@@ -495,4 +496,5 @@ void MainWindow::newConnection()
 void MainWindow::getDiffLevel(QString diff)
 {
     ui->diffLabel->setText(diff);
+    diffVal = diff;
 }
