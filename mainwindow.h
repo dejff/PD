@@ -17,7 +17,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
-#define DEFAULT_PORT "50000"
+#define DEFAULT_PORT 50000
 
 using namespace cv;
 namespace Ui {
@@ -32,7 +32,7 @@ public:
     const QString IMAGE_PATH = "./no_video.jpg";
     explicit MainWindow(QWidget *parent = 0);
     void sendFrame(int code);
-    void waitForRequest(QString port);
+    void waitForRequest(int port);
     ~MainWindow();
 
 private slots:
@@ -54,6 +54,7 @@ public slots:
     void credentialsCheck(ErrorEnums err);
     void getPingParams(double lathency, double jitter);
     void getVideoInfo(int width, int height, QString codec);
+    void getDiffLevel(QString diff);
 
 private:
     QTcpServer *server;

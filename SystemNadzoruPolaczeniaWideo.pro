@@ -71,7 +71,6 @@ SOURCES += \
     pingworker.cpp \
     opencvworker.cpp \
     freezeworker.cpp \
-    socketworker.cpp \
     videoworker.cpp
 
 HEADERS += \
@@ -79,7 +78,6 @@ HEADERS += \
     pingworker.h \
     opencvworker.h \
     freezeworker.h \
-    socketworker.h \
     videoworker.h \
     errorenums.h
 

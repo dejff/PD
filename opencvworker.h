@@ -35,6 +35,7 @@ public slots:
 signals:
     void returnFrame(const Mat frame);
     void openCvReturnMsg(const ErrorEnums err);
+    void diffLevel(const QString diff);
     void capStopped();
 };
 

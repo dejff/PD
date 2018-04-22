@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
     ui->listenPort->setValidator(portValidator);
     QStringList connectionTypes;
-    connectionTypes << "RTSP"<< "UDP" << "HTTP" <<"FREEZE TEST";
+    connectionTypes << "RTSP"<< "UDP" << "HTTP" << "FREEZE TEST - FREEZE" << "FREEZE TEST - NO FREEZE";
     ui->portCheckBox->setChecked(false);
     ui->listenPort->setDisabled(true);
     ui->checkBox->setChecked(false);                    //ustawienie wartości początkowych dla pól hasło, login i checkboxa
@@ -56,15 +56,12 @@ MainWindow::MainWindow(QWidget *parent) :
     opencvWorker->moveToThread(&openCvThread);
     videoWorker = new VideoWorker;
     videoWorker->moveToThread(&videoThread);
-//    socketWorker = new SocketWorker;
-//    socketWorker->moveToThread(&socketThread);
 
     //ŁĄCZENIE WĄTKÓW Z KLASAMI WORKERÓW - ZAMYKANIE WĄTKÓW
     connect(&pingThread, SIGNAL(finished()), pingWorker, SLOT(stopPing()));
     connect(&openCvThread, SIGNAL(finished()), opencvWorker, SLOT(stopCapture()));
     connect(opencvWorker, SIGNAL(capStopped()), this, SLOT(checkCapStopped()));
     connect(&videoThread, SIGNAL(finished()), videoWorker, SLOT(stopVideo()));
-//    connect(&socketThread, SIGNAL(finished()), socketWorker, SLOT(closeSocket()));  //do wywalenia - nie ma tego wątku
 
     //POŁĄCZNIE METOD PODCZAS INICJALIZACJI WĄTKÓW
     connect(this, SIGNAL(capturePing(QString)), pingWorker, SLOT(sniff(QString))) ;
@@ -77,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(opencvWorker, SIGNAL(openCvReturnMsg(ErrorEnums)), this, SLOT(checkVideoStream(ErrorEnums)));
     connect(opencvWorker, SIGNAL(returnFrame(Mat)), this, SLOT(getVideoFrame(Mat)));
     connect(videoWorker, SIGNAL(sendVideoParams(int, int, QString)), this, SLOT(getVideoInfo(int, int, QString)));
+    connect(opencvWorker, SIGNAL(diffLevel(QString)), this, SLOT(getDiffLevel(QString)));
     
     //POŁĄCZENIE SLOTU SERVERA Z FUNKCJĄ ZWRACAJĄCĄ INFORMACJE O STANIE URZĄDZENIA
     connect(server, SIGNAL(newConnection()), this, SLOT(newConnection()));
@@ -91,7 +89,6 @@ MainWindow::~MainWindow()
     delete ui;
     delete pingWorker;
     delete opencvWorker;
-//    delete socketWorker;
     delete videoWorker;
 }
 
@@ -173,9 +170,13 @@ void MainWindow::on_start_cap_button_clicked()
         capturePing(ui->ip_addr->text());
         pingThread.start();
 
-        if(ui->protocolType->currentText()=="FREEZE TEST")
+        if(ui->protocolType->currentText()=="FREEZE TEST - FREEZE")
         {
             url = "./lena.avi";
+        }
+        else if(ui->protocolType->currentText()=="FREEZE TEST - NO FREEZE")
+        {
+            url = "./no_freeze_sample.mkv";
         }
 
         //Sprawdzanie czy jest połączenie z kamerą - odpowiada na ping
@@ -199,15 +200,20 @@ void MainWindow::on_start_cap_button_clicked()
             }
             else
             {
+                qDebug()<<url;
                 playStream(url);
                 openCvThread.start();
                 
-                if(!ui->portField->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
+                if(!ui->listenPort->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
                 {
-                    waitForRequest(ui->portField->text());
+                    qDebug()<<ui->listenPort->text();
+                    qDebug()<<"Wybrano port";
+                    qDebug()<<ui->portField->text().toInt();
+                    waitForRequest(ui->listenPort->text().toInt());
                 }
                 else
                 {
+                    qDebug()<<"Nie wybrano portu";
                     waitForRequest(DEFAULT_PORT);
                 }
                 socketThread.start();
@@ -233,16 +239,12 @@ void MainWindow::on_stop_cap_button_clicked()
         timer->stop();
     }
 
+    server->close();
+
 
     ui->status_label->setText("Zatrzymano");
     ui->stop_cap_button->setEnabled(false);
     ui->start_cap_button->setEnabled(true);
-
-    //zakończenie wątka nasłuchującego żądań z sieci
-    if(socketThread.isRunning()){
-        socketThread.quit();
-        socketThread.wait();
-    }
 
     //zakończenie wątka pingującego urządzenie
     if(pingThread.isRunning()){
@@ -304,11 +306,12 @@ void MainWindow::sendFrame(int code)
 void MainWindow::checkThreads()
 {
 
+//    if()
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
     //na podstawie tego jaki wątek został zatrzymany zostanie wyemitowany odpowiedni pakiet z informacją o błędzie
-    if(pingThread.isFinished() || videoThread.isFinished() || openCvThread.isFinished()){
-        qDebug()<<"Jest błąd";
+//    if(pingThread.isFinished() || videoThread.isFinished() || openCvThread.isFinished()){
+//        qDebug()<<"Jest błąd";
 //        qDebug()<<"opencv thread work: "+QString(opencvThread->isFinished() ? "false" : "true")+"\n";
 //        timer->stop();
 //        if(pingThread->isFinished()){
@@ -342,7 +345,7 @@ void MainWindow::checkThreads()
 //                msg.exec();
 //            }
 //        }
-    }
+//    }
 }
 
 /**
@@ -351,7 +354,7 @@ void MainWindow::checkThreads()
  */
 void MainWindow::checkBoxClicked()
 {
-    if(!ui->checkBox->isChecked()){
+    if(!ui->checkBox->isChecked() || ui->protocolType->currentText()=="FREEZE TEST"){
         ui->passwordField->setDisabled(true);
         ui->loginField->setDisabled(true);
     }else{
@@ -366,7 +369,7 @@ void MainWindow::checkBoxClicked()
  */
 void MainWindow::portCheckBoxClicked()
 {
-    if(!ui->portCheckBox->isChecked()){
+    if(!ui->portCheckBox->isChecked() || ui->protocolType->currentText()=="FREEZE TEST"){
         ui->listenPort->setDisabled(true);
     }else{
         ui->listenPort->setDisabled(false);
@@ -375,7 +378,7 @@ void MainWindow::portCheckBoxClicked()
 
 void MainWindow::nameCheckBoxClicked()
 {
-	if(!ui->nameCheckBox->isChecked()){
+    if(!ui->nameCheckBox->isChecked() || ui->protocolType->currentText()=="FREEZE TEST"){
 		ui->nameField->setDisabled(true);
 	}else{
 		ui->nameField->setDisabled(false);
@@ -450,11 +453,11 @@ void MainWindow::getVideoInfo(int width, int height, QString codec)
     codecVal = codec;
 }
 
-void MainWindow::waitForRequest(QString socPort)
+void MainWindow::waitForRequest(int socPort)
 {
 
-
-    if(!server->listen(QHostAddress::Any, 50000))
+    qDebug()<<socPort;
+    if(!server->listen(QHostAddress::Any, socPort))
     {
         qDebug()<<"Serwer nie został uruchomiony";
     }
@@ -487,4 +490,9 @@ void MainWindow::newConnection()
     mutex.unlock();
 
     socket->close();
+}
+
+void MainWindow::getDiffLevel(QString diff)
+{
+    ui->diffLabel->setText(diff);
 }
