@@ -8,6 +8,8 @@
 #include <QMutex>
 #include "errorenums.h"
 
+#define DIFF_LEVEL 0.01
+
 using namespace cv;
 
 class OpencvWorker: public QObject

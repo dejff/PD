@@ -70,14 +70,12 @@ SOURCES += \
         mainwindow.cpp \
     pingworker.cpp \
     opencvworker.cpp \
-    freezeworker.cpp \
     videoworker.cpp
 
 HEADERS += \
         mainwindow.h \
     pingworker.h \
     opencvworker.h \
-    freezeworker.h \
     videoworker.h \
     errorenums.h
 

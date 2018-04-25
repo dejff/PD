@@ -7,8 +7,6 @@
 #include "pingworker.h"
 #include "videoworker.h"
 #include "opencvworker.h"
-//#include "socketworker.h"
-#include "freezeworker.h"
 #include <QTimer>
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
@@ -42,6 +40,7 @@ private slots:
     void checkBoxClicked();
     void portCheckBoxClicked();
     void nameCheckBoxClicked();
+    void streamPortChckxbClicked();
     void newConnection();
 
 public slots:
@@ -71,9 +70,7 @@ private:
     QShortcut *stopShortcut;
     PingWorker *pingWorker;
     OpencvWorker *opencvWorker;
-//    FreezeWorker *freezeWorker;       //tu jest problem ze strumieniem z innego komputera
     VideoWorker *videoWorker;
-//    SocketWorker *socketWorker;
     QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
     QThread pingThread, openCvThread, videoThread, socketThread, freezeThread;
 

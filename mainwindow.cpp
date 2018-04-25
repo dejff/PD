@@ -6,19 +6,23 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    connectionError = ErrorEnums::NO_ERROR;
+    connectionError = ErrorEnums::WAIT_FOR_PING;
     credentialError = ErrorEnums::NO_ERROR;
     freezeError = ErrorEnums::NO_ERROR;
 
     server = new QTcpServer(this);
     QValidator *portValidator = new QIntValidator(0, 65535, this);      //zdefiniowanie walidatora dla pola port zakres od 0 do 65535
     ui->setupUi(this);
+
+    //ustawienie rozmiarów okienka - wyłączenie możliwości rozciągania okienka
     this->setFixedHeight(this->height());
     this->setFixedWidth(this->width());
     ui->ip_addr->setInputMask("000.000.000.000");       //maska pola do wpisywania adresu IP
     ui->listenPort->setValidator(portValidator);
     QStringList connectionTypes;
-    connectionTypes << "RTSP"<< "UDP" << "HTTP" << "FREEZE TEST - FREEZE" << "FREEZE TEST - NO FREEZE";
+    connectionTypes << "RTSP"<< "UDP" << "HTTP" << "FREEZE TEST" ;
+
+    //wstępna konfiguracja pól - które mają być powyłączane i jakie checkboxy zaznaczone
     ui->portCheckBox->setChecked(false);
     ui->listenPort->setDisabled(true);
     ui->checkBox->setChecked(false);                    //ustawienie wartości początkowych dla pól hasło, login i checkboxa
@@ -27,13 +31,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->protocolType->addItems(connectionTypes);
     ui->nameField->setDisabled(true);
     ui->nameCheckBox->setChecked(false);
+    ui->streamPortChckbx->setChecked(false);
+    ui->portField->setDisabled(true);
+
+    //konfiguracja skrótów klawiaturowych Ctrl+r dla uruchomienia przechwytywanie oraz Ctrl+s dla zatrzymania
     startShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this); //ustawienie skrótu na rozpoczęcie skanowania
     stopShortcut = new QShortcut(QKeySequence(Qt::CTRL+Qt::Key_S), this);   //ustawienie skrótu na zakończenie skanowania
+
     connect(startShortcut, SIGNAL(activated()),this, SLOT(on_start_cap_button_clicked()));  //połączenie skrtótu klawiszowego z przyciskiem "Zacznij przechwytywanie"
     connect(stopShortcut, SIGNAL(activated()), this, SLOT(on_stop_cap_button_clicked()));   //Połączenie skrótu klawiszowego z przyciskiem "Zatrzyma przechwytywanie"
     connect(ui->checkBox, SIGNAL(toggled(bool)), this, SLOT(checkBoxClicked()));
     connect(ui->portCheckBox, SIGNAL(toggled(bool)), this, SLOT(portCheckBoxClicked()));
     connect(ui->nameCheckBox, SIGNAL(toggled(bool)), this, SLOT(nameCheckBoxClicked()));
+    connect(ui->streamPortChckbx, SIGNAL(toggled(bool)), this, SLOT(streamPortChckxbClicked()));
     ui->passwordField->setEchoMode(QLineEdit::Password);                                                            //ustawianie pola hasła
     ui->passwordField->setInputMethodHints(Qt::ImhHiddenText| Qt::ImhNoPredictiveText|Qt::ImhNoAutoUppercase);      //wyłaczenie wyświatlania wpisywanych znaków w polu hasła
     ui->passwordField->setPlaceholderText("Hasło");
@@ -80,8 +90,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(server, SIGNAL(newConnection()), this, SLOT(newConnection()));
 
 
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
+//    timer = new QTimer(this);
+//    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
 }
 
 MainWindow::~MainWindow()
@@ -98,7 +108,7 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_start_cap_button_clicked()
 {
-    QMessageBox msg;
+    connectionError = ErrorEnums::WAIT_FOR_PING;
     url = "";
     if(ui->ip_addr->text().isEmpty() || ui->ip_addr->text().length()<=4){       //sprawdzamy czy użtykownik cokolwiek wpisał
 
@@ -126,7 +136,7 @@ void MainWindow::on_start_cap_button_clicked()
             url = "http://";
         }
 
-        if(!ui->portField->text().isEmpty()){
+        if(!ui->portField->text().isEmpty() && ui->streamPortChckbx->isChecked()){
             url+=credentials+ui->ip_addr->text()+":"+ui->portField->text();
         }else{
             url+=credentials+ui->ip_addr->text();
@@ -153,7 +163,7 @@ void MainWindow::on_start_cap_button_clicked()
         }
 
         if(ui->portCheckBox->isChecked()){
-            ui->portField->setDisabled(true);
+            ui->listenPort->setDisabled(true);
         }
 
         ui->protocolType->setDisabled(true);
@@ -162,70 +172,65 @@ void MainWindow::on_start_cap_button_clicked()
         ui->nameCheckBox->setDisabled(true);
         ui->portCheckBox->setDisabled(true);
         ui->checkBox->setDisabled(true);
+        ui->streamPortChckbx->setDisabled(true);
 
 
         //URUCHAMIANIE WSZYSTKICH WĄTKÓW
         
         //NAJPIERW SPRAWDZAMY CZY ADRES KTÓRY WPISALIŚMY JEST OSIĄGALNY - ODPOWIADA NA PING
-        capturePing(ui->ip_addr->text());
-        pingThread.start();
 
-        if(ui->protocolType->currentText()=="FREEZE TEST - FREEZE")
+        if(ui->protocolType->currentText()=="FREEZE TEST")
         {
             url = "./lena.avi";
         }
-        else if(ui->protocolType->currentText()=="FREEZE TEST - NO FREEZE")
-        {
-            url = "./no_freeze_sample.mkv";
-        }
+
+        connectionError = PingWorker::checkConnection(ui->ip_addr->text());
 
         //Sprawdzanie czy jest połączenie z kamerą - odpowiada na ping
         if(connectionError==ErrorEnums::CONNECTION_ERROR)
         {
-            qDebug()<<"TEST1";
             msg.setText("Urządzenie o podanym IP nie odpowiada");
+            msg.exec();
             on_stop_cap_button_clicked();
         }
         else
         {
-            qDebug()<<"TEST2";
-            runVideoCodec(url);
-            videoThread.start();
+            credentialError = VideoWorker::checkCredentials(url);
             
             //Sprawdzenie czy wpisane hasło i login są poprawne
             if(credentialError==ErrorEnums::CREDENTIALS_ERROR)
             {
                 msg.setText("Problem z uwierzytelnieniem");
+                msg.exec();
                 on_stop_cap_button_clicked();
             }
             else
             {
+                runVideoCodec(url);
+                videoThread.start();
+                capturePing(ui->ip_addr->text());
+                pingThread.start();
                 qDebug()<<url;
                 playStream(url);
                 openCvThread.start();
                 
                 if(!ui->listenPort->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
                 {
-                    qDebug()<<ui->listenPort->text();
-                    qDebug()<<"Wybrano port";
-                    qDebug()<<ui->portField->text().toInt();
                     waitForRequest(ui->listenPort->text().toInt());
                 }
                 else
                 {
-                    qDebug()<<"Nie wybrano portu";
                     waitForRequest(DEFAULT_PORT);
                 }
-                socketThread.start();
                 
+                ui->status_label->setText("Program działa");
+
+                //uruchomienie funkcji sprawdzającej stan wątków
+//                timer->start(200);
             }
             
         }
 
-        ui->status_label->setText("Program działa");
-
-        //uruchomienie funkcji sprawdzającej stan wątków
-        timer->start(200);
     }
 
 }
@@ -235,14 +240,20 @@ void MainWindow::on_start_cap_button_clicked()
  */
 void MainWindow::on_stop_cap_button_clicked()
 {
-    if(timer->isActive()){
-        timer->stop();
+    qDebug()<<"Test w on stop cap button clicked";
+
+//    if(timer->isActive()){
+//        timer->stop();
+//    }
+
+    if(server->isListening()){
+        server->close();
     }
 
-    server->close();
-
+    qDebug()<<"serwer zamknięty";
 
     ui->status_label->setText("Zatrzymano");
+
     ui->stop_cap_button->setEnabled(false);
     ui->start_cap_button->setEnabled(true);
 
@@ -253,12 +264,25 @@ void MainWindow::on_stop_cap_button_clicked()
         qDebug()<<"ping thr. zamknięty i usunięty";
 
     }
+
+    qDebug()<<"po pingThread";
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
     if(openCvThread.isRunning()){
-        openCvThread.quit();
-        openCvThread.wait();
+        if(connectionError==ErrorEnums::CONNECTION_ERROR)
+        {
+            qDebug()<<"Zamykam siłą";
+            openCvThread.terminate();
+        }
+        else
+        {
+            openCvThread.quit();
+            openCvThread.wait();
+        }
         qDebug()<<"opencv thr. zamknięty i usunięty";
     }
+
+    qDebug()<<"po opencv";
+
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
     if(videoThread.isRunning()){
         videoThread.quit();
@@ -285,6 +309,7 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->nameCheckBox->setDisabled(false);
     ui->portCheckBox->setDisabled(false);
     ui->checkBox->setDisabled(false);
+    ui->streamPortChckbx->setDisabled(false);
     
 }
 
@@ -299,6 +324,8 @@ void MainWindow::sendFrame(int code)
     qDebug()<<"code sent: "+QString::number(code);
 }
 
+
+//DO WYWALENIA
 /**
  * @brief MainWindow::checkThreads
  * Funkcja monitorująca stan poszczególnych wątków, i jeśli któryś z nich zostanie zakończony to wysłany zostanie komunikat o błędzie
@@ -306,7 +333,6 @@ void MainWindow::sendFrame(int code)
 void MainWindow::checkThreads()
 {
 
-//    if()
     //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
     //wywołana zostanie metoda on stop button clicked
     //na podstawie tego jaki wątek został zatrzymany zostanie wyemitowany odpowiedni pakiet z informacją o błędzie
@@ -385,15 +411,33 @@ void MainWindow::nameCheckBoxClicked()
 	}
 }
 
+void MainWindow::streamPortChckxbClicked()
+{
+    if(!ui->streamPortChckbx->isChecked() || ui->protocolType->currentText()=="FREEZE TEST"){
+        ui->portField->setDisabled(true);
+    }else{
+        ui->portField->setDisabled(false);
+    }
+}
+
 void MainWindow::checkVideoStream(ErrorEnums err){
 
     if(err==ErrorEnums::FREEZE_ERROR)
     {
-        msg.setText("Wykryto zamrożenie obrazu");
+        freezeError = ErrorEnums::FREEZE_ERROR;
+        if(PingWorker::checkConnection(ui->ip_addr->text()) == ErrorEnums::CONNECTION_ERROR)
+        {
+            msg.setText("Połączenie zostało zerwane");
+        }
+        else
+        {
+            msg.setText("Wykryto zamrożenie obrazu");
+        }
+
         msg.exec();
 //        openCvThread.quit();
 //        openCvThread.wait();
-//        on_stop_cap_button_clicked();
+        on_stop_cap_button_clicked();
     }
 
 }
@@ -401,10 +445,14 @@ void MainWindow::checkVideoStream(ErrorEnums err){
 void MainWindow::checkPing(ErrorEnums err)
 {
     if(err==ErrorEnums::CONNECTION_ERROR){
-        msg.setText("Docelowy adres jest nieosiągalny");
+        connectionError = ErrorEnums::CONNECTION_ERROR;
+        msg.setText("Połączenie zostało zerwane");
         msg.exec();
+        qDebug()<<"quit()";
         pingThread.quit();
+        qDebug()<<"wait()";
         pingThread.wait();
+        qDebug()<<"po wait()";
         on_stop_cap_button_clicked();
     }
 }
@@ -456,7 +504,6 @@ void MainWindow::getVideoInfo(int width, int height, QString codec)
 void MainWindow::waitForRequest(int socPort)
 {
 
-    qDebug()<<socPort;
     if(!server->listen(QHostAddress::Any, socPort))
     {
         qDebug()<<"Serwer nie został uruchomiony";
@@ -472,7 +519,6 @@ void MainWindow::newConnection()
 {
 
     response = "";
-    qDebug()<<"test tcp";
     mutex.lock();
     response = "Adres IP urządzenia: "+ui->ip_addr->text()+
             "\nPort: "+(ui->portField->text().trimmed().isEmpty() ? "domyślny" : ui->portField->text())+

@@ -29,6 +29,7 @@ private:
     vector<double>::iterator latIter;
     vector<double>::iterator jittIter;
     pingobj_t *ping;
+    bool connectionLost;
     pingobj_iter_t *iter;
     double latency, diff;     //zmienna przechowująca informacje o opóźnieniu
     long unsigned int len;
@@ -39,6 +40,7 @@ public slots:
     void sniff(const QString ip);
     void stopPing();
     void doPing();
+    static ErrorEnums checkConnection(QString ip);
 
 signals:
     //SYGNAŁ ZWRACAJĄCY WIADOMOŚĆ O STANIE WĄTKU, MA DWIE WARTOŚĆI "OK" - KIEDY WSZYSTKO DZIAŁA, ORAZ "BRAK POŁĄCZENIA"

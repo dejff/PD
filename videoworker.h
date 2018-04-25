@@ -32,6 +32,7 @@ class VideoWorker: public QObject{
 public:
     VideoWorker();
     ~VideoWorker();
+    static ErrorEnums checkCredentials(QString url);
 private:
     AVFormatContext *formatContext = NULL;
     AVCodecContext *codecContextOriginal = NULL;

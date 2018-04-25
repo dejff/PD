@@ -55,7 +55,7 @@ void VideoWorker::processVideo(const QString url)
         if(avformat_open_input(&formatContext, url.toUtf8().data(), NULL, NULL)!=0)
         {
             cout<<"Błąd otwierania strumienia"<<endl;
-            emit returnError(ErrorEnums::CREDENTIALS_ERROR);
+//            emit returnError(ErrorEnums::CREDENTIALS_ERROR);
         }
         else
         {
@@ -109,7 +109,7 @@ void VideoWorker::processVideo(const QString url)
             if(frameRGB==NULL){
     //            return -1;
             }
-
+avformat_network_deinit();
             iloscBajtow = avpicture_get_size(AV_PIX_FMT_RGB24, codecContext->width, codecContext->height);
 
             bufor = (uint8_t *)av_malloc(iloscBajtow*sizeof(uint8_t));
@@ -164,8 +164,6 @@ void VideoWorker::processVideo(const QString url)
 
 }
 
-
-
 /**
  * @brief VideoWorker::stopVideo
  * Metoda wywoływana podczas zamykania wątku - zwalniane są wszystkie zasoby
@@ -180,4 +178,25 @@ void VideoWorker::stopVideo()
 
     avformat_close_input(&formatContext);
     avformat_network_deinit();
+}
+
+ErrorEnums VideoWorker::checkCredentials(QString url)
+{
+
+    static AVFormatContext *formatContextTest = NULL;
+    avformat_network_init();
+    av_register_all();
+    qDebug()<<url;
+    if(avformat_open_input(&formatContextTest, url.toUtf8().data(), NULL, NULL)!=0)
+    {
+        cout<<"Błąd otwierania strumienia"<<endl;
+        avformat_network_deinit();
+        return ErrorEnums::CREDENTIALS_ERROR;
+    }
+    else
+    {
+        avformat_close_input(&formatContextTest);
+        avformat_network_deinit();
+        return ErrorEnums::NO_ERROR;
+    }
 }

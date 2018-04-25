@@ -27,7 +27,6 @@ void OpencvWorker::capture(const QString url)
     qDebug()<<"Start capture";
     cap.open(url.toUtf8().data());
     if(!cap.isOpened()){
-        qDebug()<<"nie działa, cap zamknięty";
         emit openCvReturnMsg(ErrorEnums::CONNECTION_ERROR);
     }
 
@@ -37,10 +36,12 @@ void OpencvWorker::capture(const QString url)
 
 void OpencvWorker::tick()
 {
-
-    qDebug()<<counter;
-    cap.read(frame);
-    emit returnFrame(frame);
+    cap.read(frame);//odczytujemy ramkę wideo ze strumienia
+    if(!frame.empty()){ //jeśli ramka jest pusta to jej nie wysyłamy -
+                        //w przypadku, kiedy zostanie zerwane połączenie i nie ma się wyświetlać puste okienko,
+                        //bo program będzie działał jeszcze przez około 7 sekund
+        emit returnFrame(frame);
+    }
 
     if(compareFrame1.empty() && compareFrame2.empty())      //jeśli oba kontenery na ramki do porównania są puste, to zainicjuj jedną - zadziała tylko w przypadku pobrania pierwszej ramki
     {
@@ -52,40 +53,28 @@ void OpencvWorker::tick()
         {
             if(compareFrame2.empty())
             {
-                qDebug()<<"Ramka 2 pusta";
                 frame.copyTo(compareFrame2);
             }
             else
             {
-                qDebug()<<"Ramka 1 i 2 pełna";
                 compareFrame1.release();
-//                qDebug()<<compareFrame1.empty();
                 compareFrame2.copyTo(compareFrame1);            //skopiowanie ramki
                 compareFrame2.release();
                 frame.copyTo(compareFrame2);
-                compareFrames(compareFrame1, compareFrame2);
-                bool isEqual = (sum(compareFrame1 != compareFrame2) == Scalar(0,0,0,0));
-                qDebug()<<isEqual;
+                if(compareFrame1.rows==compareFrame2.rows && compareFrame1.cols==compareFrame2.cols)      //jeśli obie ramki mają tyle samo weirszy i kolumn
+                {
+                    compareFrames(compareFrame1, compareFrame2);
+                }
+                else
+                {
+                    //Ramki mają różne wymiary - nie mogą być takie same -> BŁĄD
+                    frameTimer->stop();
+                    emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
+                }
 
             }
             counter=0;
         }
-
-//        if(!compareFrame1.empty() && !compareFrame2.empty())
-//        {
-////            qDebug()<<"obie ramki nie są puste";
-//            if(!compareFrames(compareFrame1, compareFrame2))
-//            {
-////                qDebug()<<"TEST!@#";
-//                frameTimer->stop();
-//                emit returnFrame(frame);
-//            }
-//            else
-//            {
-////                qDebug()<<"TEst123";
-//                emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
-//            }
-//        }
     }
 
     counter++;
@@ -99,72 +88,45 @@ void OpencvWorker::stopCapture()
 {
     frameTimer->stop();
     cap.release();
-    qDebug()<<"opencv zatrzymany";
     emit capStopped();
 }
 
 bool OpencvWorker::compareFrames(Mat frame1, Mat frame2)
 {
-
     QImage firstImage((const unsigned char*)(frame1.data), frame1.cols, frame1.rows, QImage::Format_RGB888);
     QImage secondImage((const unsigned char*)(frame2.data), frame2.cols, frame2.rows, QImage::Format_RGB888);
+    double totaldiff = 0.0 ;
+    double diffLevelVal = 0.0 ;
+    for ( int y = 0 ; y < firstImage.height() ; y++ ) {
+        //odczytywanie linii obrazków
+        uint *firstLine = ( uint* )firstImage.scanLine( y ) ;
+        uint *secondLine = ( uint* )secondImage.scanLine( y ) ;
+        for ( int x = 0 ; x < firstImage.width() ; x++ ) {
+            uint pixelFirst = firstLine[ x ] ;
+            int rFirst = qRed( pixelFirst ) ;
+            int gFirst = qGreen( pixelFirst ) ;
+            int bFirst = qBlue( pixelFirst ) ;
 
-
-
-    double totaldiff = 0.0 ; //holds the number of different pixels
-    int h = firstImage.height( ) ;
-    int w = firstImage.width( ) ;
-    int hsecond = secondImage.height( ) ;
-    int wsecond = secondImage.width( ) ;
-    if ( w != wsecond || h != hsecond ) {
-       qDebug() << "Error, pictures must have identical dimensions!\n" ;
-    }
-    for ( int y = 0 ; y < h ; y++ ) {
-       uint *firstLine = ( uint* )firstImage.scanLine( y ) ;
-       uint *secondLine = ( uint* )secondImage.scanLine( y ) ;
-       for ( int x = 0 ; x < w ; x++ ) {
-      uint pixelFirst = firstLine[ x ] ;
-      int rFirst = qRed( pixelFirst ) ;
-      int gFirst = qGreen( pixelFirst ) ;
-      int bFirst = qBlue( pixelFirst ) ;
-      uint pixelSecond = secondLine[ x ] ;
-      int rSecond = qRed( pixelSecond ) ;
-      int gSecond = qGreen( pixelSecond ) ;
-      int bSecond = qBlue( pixelSecond ) ;
-      totaldiff += std::abs( rFirst - rSecond ) / 255.0 ;
-      totaldiff += std::abs( gFirst - gSecond ) / 255.0 ;
-      totaldiff += std::abs( bFirst -bSecond ) / 255.0 ;
-       }
+            //pobieranie wartości pikseli drugiego obrazka
+            uint pixelSecond = secondLine[ x ] ;
+            //pobieranie wartości składowych RGB piksela
+            int rSecond = qRed( pixelSecond ) ;
+            int gSecond = qGreen( pixelSecond ) ;
+            int bSecond = qBlue( pixelSecond ) ;
+            totaldiff += std::abs( rFirst - rSecond ) / 255.0 ;
+            totaldiff += std::abs( gFirst - gSecond ) / 255.0 ;
+            totaldiff += std::abs( bFirst -bSecond ) / 255.0 ;
+        }
     }
 
-    emit diffLevel(QString::number((totaldiff * 100)  / (w * h * 3)));
+    diffLevelVal = ((totaldiff * 100)  / (firstImage.width() * firstImage.height() * 3));
 
-//    if(isEqual){
-//        qDebug()<<"Obrazy są takie same";
-//        frameTimer->stop();
-//        imwrite("diff.jpg", diffFrame);
-//        emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
-//    }else{
-//        qDebug()<<"Obrazy są różne";
-//        absdiff(frame1, frame1, diffFrame);
-//        imwrite("diff.jpg", diffFrame);
-//    }
+    if(diffLevelVal<DIFF_LEVEL)
+    {
+        frameTimer->stop();
+        emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
+    }
 
-//    if(frame1.rows==frame2.rows && frame1.cols==frame2.cols)      //jeśli obie ramki mają tyle samo weirszy i kolumn
-//    {
+    emit diffLevel(QString::number(diffLevelVal));
 
-//        if(countNonZero(compareFrame1!=compareFrame2)==0){      //ilość nie zerowych elementów w macierzy jest równa zero,
-//                                            //czyli obie macierze były identyczne(obie ramki wideo są takie same) zamrożenie obrazu
-//            qDebug()<<"ramki są takie same";
-//            return true;
-//////            stopCapture();                //kończy się wątek
-//        }
-//        qDebug()<<"Ramki są różne";
-
-//    }
-//    else
-//    {
-//        qDebug()<<"Ramki są różne";
-//        return false;
-//    }
 }
