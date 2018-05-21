@@ -270,11 +270,11 @@ void MainWindow::on_stop_cap_button_clicked()
     if(openCvThread.isRunning()){
         if(connectionError==ErrorEnums::CONNECTION_ERROR)
         {
-            qDebug()<<"Zamykam siłą";
-            openCvThread.terminate();
-        }
-        else
-        {
+//            qDebug()<<"Zamykam siłą";
+//            openCvThread.terminate();
+//        }
+//        else
+//        {
             openCvThread.quit();
             openCvThread.wait();
         }
