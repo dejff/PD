@@ -41,11 +41,11 @@ CONFIG(debug, debug|release) {
 
 $$OUT_PWD= $$PWD/build/release/
 
-copydata.commands = $(COPY_DIR) $$PWD/no_video.jpg $$PWD/build/release/
-first.depends = $(first) copydata
-export(first.depends)
-export(copydata.commands)
-QMAKE_EXTRA_TARGETS += first copydata
+#copydata.commands = $(COPY_DIR) $$PWD/no_video.jpg $$PWD/build/release/
+#first.depends = $(first) copydata
+#export(first.depends)
+#export(copydata.commands)
+#QMAKE_EXTRA_TARGETS += first copydata
 
 Release:DESTDIR = release
 Release:OBJECTS_DIR = release/.obj

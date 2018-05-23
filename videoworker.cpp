@@ -1,10 +1,10 @@
 #include <qt5/QtCore/qlogging.h>
-
 #include "videoworker.h"
 
 VideoWorker::VideoWorker()
 {
     timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(grabFrameFn()), Qt::DirectConnection);
 }
 
 VideoWorker::~VideoWorker()
@@ -12,8 +12,39 @@ VideoWorker::~VideoWorker()
 
 }
 
-//void VideoWorker::grabFrame()
-//{
+void VideoWorker::grabFrameFn()
+{
+    int len;
+    int codecError = 0;
+    
+
+    if(av_read_frame(formatContext, &packet)<0) qDebug()<<"Błąd odczytu ramki";
+
+    while(av_read_frame(formatContext, &packet)>=0)
+    {
+        if (packet.stream_index == videoStream)
+        {
+            len = avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
+
+            if(frameFinished)
+            {
+                sws_scale(
+                        sws_ctx, (uint8_t const * const *)frame->data,
+                        frame->linesize, 0, codecContext->height,
+                        frameRGB->data, frameRGB->linesize
+                        );
+
+                QString tmpText(codecContext->codec->name);
+           emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
+                break;
+
+            }
+
+
+        }
+
+        av_packet_unref(&packet);
+    }
 //    while(av_read_frame(formatContext, &packet)>=0)
 //            {
 //        qDebug()<<"TEST!@#";
@@ -21,7 +52,7 @@ VideoWorker::~VideoWorker()
 //                {
 //                    qDebug()<<"test123123";
 //                    avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
-//
+
 //                    if(frameFinished)
 //                    {
 //                        qDebug()<<"koniec ramki";
@@ -31,22 +62,26 @@ VideoWorker::~VideoWorker()
 //                                frame->linesize, 0, codecContext->height,
 //                                frameRGB->data, frameRGB->linesize
 //                                );
-//                        
+
 //                        QString tmpText(codecContext->codec_name);
 //                        emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
-//                        
+
 //                        break;
 //                    }
-//
+
 //                }
-//
+
 //                av_packet_unref(&packet);
 //            }
-//}
+}
 
 void VideoWorker::processVideo(const QString url)
 {
-    
+    int len;
+    // qDebug()<<"jedziemy";
+//    grabFrame = true;
+    int codecError = 0;
+    // qDebug()<<"rtesda";
 //    connect(timer, SIGNAL(timeout()), this, SLOT(grabFrame()), Qt::DirectConnection);
     
         avformat_network_init();
@@ -54,14 +89,14 @@ void VideoWorker::processVideo(const QString url)
 
         if(avformat_open_input(&formatContext, url.toUtf8().data(), NULL, NULL)!=0)
         {
-            cout<<"Błąd otwierania strumienia"<<endl;
+            // qDebug()<<"Błąd otwierania strumienia"<<endl;
 //            emit returnError(ErrorEnums::CREDENTIALS_ERROR);
         }
         else
         {
             if(avformat_find_stream_info(formatContext, NULL)<0)
             {
-                cout<<"Nie można znaleźć informacji o strumieniu";
+                // qDebug()<<"Nie można znaleźć informacji o strumieniu";
     //            return -1;
             }
 
@@ -77,6 +112,7 @@ void VideoWorker::processVideo(const QString url)
 
             if(videoStream==-1)
             {
+                // qDebug()<<"bład strumienia 127";
 //                return -1;      //nie znaleziono strumienia wideo
             }
 
@@ -85,7 +121,8 @@ void VideoWorker::processVideo(const QString url)
             codec = avcodec_find_decoder(codecContextOriginal->codec_id);
             if(codec==NULL)
             {
-                cout<<"Nie wspierany kodek";
+
+                // qDebug()<<"Nie wspierany kodek";
                 stopVideo();
     //            return -1;
             }
@@ -93,13 +130,13 @@ void VideoWorker::processVideo(const QString url)
             codecContext = avcodec_alloc_context3(codec);
             if(avcodec_copy_context(codecContext, codecContextOriginal)!=0)
             {
-                cout<<"Nie można skopiować CodecContext";
+                // qDebug()<<"Nie można skopiować CodecContext";
     //            return -1;
             }
 
             if(avcodec_open2(codecContext, codec, NULL)<0)
             {
-                cout<<"Nie można otworzyć kodeka";
+                // qDebug()<<"Nie można otworzyć kodeka";
     //            return -1;
             }
 
@@ -107,6 +144,7 @@ void VideoWorker::processVideo(const QString url)
             frameRGB = av_frame_alloc();
 
             if(frameRGB==NULL){
+                // qDebug()<<"błąd ramki RGB";
     //            return -1;
             }
 avformat_network_deinit();
@@ -131,34 +169,49 @@ avformat_network_deinit();
 
             i=0;
             
-//            timer->start(1000);      //co sekundę będą gromadzone informacje ze strumienia
+            timer->start(5);      //co sekundę będą gromadzone informacje ze strumienia
 
-            while(av_read_frame(formatContext, &packet)>=0)
-            {
-                if(packet.stream_index==videoStream)
-                {
-                    avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
+//            while(1)
+//            {
+//                QApplication::processEvents();
+//                if(grabFrame==false) break;
+//                qDebug()<<av_read_frame(formatContext, &packet);
+//                while(av_read_frame(formatContext, &packet)>=0)
+//                {
+//                    if(packet.stream_index==videoStream)
+//                    {
+//                        len = avcodec_decode_video2(codecContext, frame, &frameFinished, &packet);
 
-                    if(frameFinished)
-                    {
-                        cout<<frame->key_frame;
-                        sws_scale(
-                                sws_ctx, (uint8_t const * const *)frame->data,
-                                frame->linesize, 0, codecContext->height,
-                                frameRGB->data, frameRGB->linesize
-                                );
-                        
-                        qDebug()<<codecContext->codec->name;
-                        QString tmpText(codecContext->codec->name);
-                        emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
-                        qDebug()<<"Ramka";
-                        break;
-                    }
+//                        if(len < 0)
+//                        {
+//                            qDebug()<<"Błąd kodeka";
+//                            codecError++;
+//                        }
 
-                }
+//                        if(frameFinished)
+//                        {
+//                            cout<<frame->key_frame;
+//                            sws_scale(
+//                                    sws_ctx, (uint8_t const * const *)frame->data,
+//                                    frame->linesize, 0, codecContext->height,
+//                                    frameRGB->data, frameRGB->linesize
+//                                    );
 
-                av_packet_unref(&packet);
-            }
+//                            qDebug()<<codecContext->codec->name;
+//                            QString tmpText(codecContext->codec->name);
+//                            emit sendVideoParams(codecContext->width, codecContext->height, tmpText);
+////                            qDebug()<<"Ramka";
+////                            if(codecError!=0){
+////                                qDebug()<<"był błąd";
+////                            }
+//                            break;
+//                        }
+
+//                    }
+
+//                    av_packet_unref(&packet);
+//                }
+//            }
 
         }
 
@@ -170,6 +223,8 @@ avformat_network_deinit();
  */
 void VideoWorker::stopVideo()
 {
+    timer->stop();
+//    grabFrame = false;
     av_frame_free(&frameRGB);
     av_frame_free(&frame);
 
@@ -186,7 +241,6 @@ ErrorEnums VideoWorker::checkCredentials(QString url)
     static AVFormatContext *formatContextTest = NULL;
     avformat_network_init();
     av_register_all();
-    qDebug()<<url;
     if(avformat_open_input(&formatContextTest, url.toUtf8().data(), NULL, NULL)!=0)
     {
         cout<<"Błąd otwierania strumienia"<<endl;

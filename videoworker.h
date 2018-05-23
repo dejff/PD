@@ -48,9 +48,11 @@ private:
     struct SwsContext *sws_ctx = NULL;
     QString url;
     QTimer *timer;
+    bool grabFrame;
+    QString tmpText;
 
 private slots:
-//    void grabFrame();
+    void grabFrameFn();
     
 public slots:
     void stopVideo();

@@ -1,5 +1,4 @@
 #include "pingworker.h"
-#include <QDebug>
 #include <qt5/QtCore/qobjectdefs.h>
 
 PingWorker::PingWorker(){
@@ -18,7 +17,6 @@ void PingWorker::sniff(const QString ip)
 {
     bool connectionLost = false;
     static double timeout = PING_TIMEOUT;
-    qDebug()<<"Ping działa, ip: "+ip;
     ping = ping_construct();
     if(ping_host_add(ping, ip.toUtf8().data())<0)
     {
@@ -47,7 +45,6 @@ void PingWorker::stopPing()
     if(timer->isActive()) timer->stop();
     if(!latencies.empty()) latencies.clear();
     if(!jitters.empty()) jitters.clear();
-    qDebug()<<ping;
     if(!connectionLost) ping_destroy(ping);
 }
 

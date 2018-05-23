@@ -1,5 +1,4 @@
 #include "opencvworker.h"
-#include <QDebug>
 
 using namespace cv;
 
@@ -24,7 +23,6 @@ void OpencvWorker::capture(const QString url)
     counter = 0;
     compareFrame1.release();
     compareFrame2.release();
-    qDebug()<<"Start capture";
     cap.open(url.toUtf8().data());
     if(!cap.isOpened()){
         emit openCvReturnMsg(ErrorEnums::CONNECTION_ERROR);

@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QDebug>
+//#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -90,8 +90,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(server, SIGNAL(newConnection()), this, SLOT(newConnection()));
 
 
-//    timer = new QTimer(this);
-//    connect(timer, SIGNAL(timeout()), this, SLOT(checkThreads()));
+   timer = new QTimer(this);
+   connect(timer, SIGNAL(timeout()), this, SLOT(checkConnectionQuality()));
 }
 
 MainWindow::~MainWindow()
@@ -108,6 +108,8 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_start_cap_button_clicked()
 {
+//    ui->qualityLabel->setProperty("backbround-color", "");
+    ui->qualityLabel->setStyleSheet("QLabel {background-color: green}");
     connectionError = ErrorEnums::WAIT_FOR_PING;
     url = "";
     if(ui->ip_addr->text().isEmpty() || ui->ip_addr->text().length()<=4){       //sprawdzamy czy użtykownik cokolwiek wpisał
@@ -210,10 +212,34 @@ void MainWindow::on_start_cap_button_clicked()
                 videoThread.start();
                 capturePing(ui->ip_addr->text());
                 pingThread.start();
-                qDebug()<<url;
                 playStream(url);
-                openCvThread.start();
-                
+                // openCvThread.start();
+                // codecError = 0;
+                // MainWindow::redirectStdErr();
+                ui->errCountLabel->setText(QString::number(codecError));
+                FILE *stream = freopen("stderr.out", "w", stderr);
+                cout<<"setvbuf"<<setvbuf(stream, 0, _IOLBF, 0)<<endl;
+                setvbuf(stream, 0, _IOLBF, 0);//buforuje aż wykryje znak końaca linii
+                // if(fopen("stderr.out", "r")!=NULL)
+                // {
+                //     cout << "coś się dzieje";
+                // }
+                FILE *input = fopen("stderr.out", "r");
+
+                char buffer[1024];
+                // if(fgets(buffer, 512, input))
+                // {
+                //     cout << "coś się dzieje";
+                // }
+                while (fgets(buffer, 512, input))
+                {
+                    qDebug() << "test";
+                    cout << "coś się dzieje";
+                    codecError++;
+                    ui->errCountLabel->setText(QString::number(codecError));
+                    printf(">>>%s\n", buffer);
+                }
+
                 if(!ui->listenPort->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
                 {
                     waitForRequest(ui->listenPort->text().toInt());
@@ -225,8 +251,8 @@ void MainWindow::on_start_cap_button_clicked()
                 
                 ui->status_label->setText("Program działa");
 
-                //uruchomienie funkcji sprawdzającej stan wątków
-//                timer->start(200);
+                //uruchomienie funkcji zliczającej ilość błędów kodeka - możliwe, że do usunięcia
+               timer->start(20);
             }
             
         }
@@ -240,17 +266,10 @@ void MainWindow::on_start_cap_button_clicked()
  */
 void MainWindow::on_stop_cap_button_clicked()
 {
-    qDebug()<<"Test w on stop cap button clicked";
-
-//    if(timer->isActive()){
-//        timer->stop();
-//    }
-
+    ui->qualityLabel->setStyleSheet("QLabel {background-color: red}");
     if(server->isListening()){
         server->close();
     }
-
-    qDebug()<<"serwer zamknięty";
 
     ui->status_label->setText("Zatrzymano");
 
@@ -261,33 +280,19 @@ void MainWindow::on_stop_cap_button_clicked()
     if(pingThread.isRunning()){
         pingThread.quit();
         pingThread.wait();
-        qDebug()<<"ping thr. zamknięty i usunięty";
 
     }
 
-    qDebug()<<"po pingThread";
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
     if(openCvThread.isRunning()){
-        if(connectionError==ErrorEnums::CONNECTION_ERROR)
-        {
-//            qDebug()<<"Zamykam siłą";
-//            openCvThread.terminate();
-//        }
-//        else
-//        {
-            openCvThread.quit();
-            openCvThread.wait();
-        }
-        qDebug()<<"opencv thr. zamknięty i usunięty";
+        openCvThread.quit();
+        openCvThread.wait();
     }
-
-    qDebug()<<"po opencv";
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
     if(videoThread.isRunning()){
         videoThread.quit();
         videoThread.wait();
-        qDebug()<<"video thr. zamknięty";
     }
 
     if(ui->nameCheckBox->isChecked()){
@@ -311,67 +316,6 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->checkBox->setDisabled(false);
     ui->streamPortChckbx->setDisabled(false);
     
-}
-
-/**
- * @brief MainWindow::sendFrame
- * Funkcja wysyłająca pakiet z informacją o zaistniałym błędzie, jeśli nastąpi
- * pod adres wpisany w interfejsie graficznym
- */
-void MainWindow::sendFrame(int code)
-{
-    //do dokończenia
-    qDebug()<<"code sent: "+QString::number(code);
-}
-
-
-//DO WYWALENIA
-/**
- * @brief MainWindow::checkThreads
- * Funkcja monitorująca stan poszczególnych wątków, i jeśli któryś z nich zostanie zakończony to wysłany zostanie komunikat o błędzie
- */
-void MainWindow::checkThreads()
-{
-
-    //jeśli któryś z wątków zostanie zatrzymany to, zatrzyma się timer, sprawdzony zostanie stan poszczególnych wątków i
-    //wywołana zostanie metoda on stop button clicked
-    //na podstawie tego jaki wątek został zatrzymany zostanie wyemitowany odpowiedni pakiet z informacją o błędzie
-//    if(pingThread.isFinished() || videoThread.isFinished() || openCvThread.isFinished()){
-//        qDebug()<<"Jest błąd";
-//        qDebug()<<"opencv thread work: "+QString(opencvThread->isFinished() ? "false" : "true")+"\n";
-//        timer->stop();
-//        if(pingThread->isFinished()){
-//            //błąd polecenia ping, błąd połączenia
-////            qDebug()<<"błąd połączenia";
-//            msg.setText("Brak połączenia z urządzeniem");
-//            sendFrame(1);
-//            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-//            msg.exec();
-//        }else if (videoThread->isFinished()) {
-//            //błąd połączenia video (libavc) - pobieranie parametrów strumienia wideo
-////            qDebug()<<"błąd video thread";
-//            msg.setText("Problem z połączeniem");
-//            sendFrame(2);
-//            on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-//            msg.exec();
-//        }else{
-//            //błąd połączenia video (opencv) - sprawdzanie czy wystąpiło zamrożenie obrazu
-////            qDebug()<<"błąd open cv";
-//            if(pingThread->isFinished()){
-//                msg.setText("Problem z połączeniem");
-//                sendFrame(1);
-//                opencvThread->quit();
-//                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-//                msg.exec();
-//            }else{
-//                opencvThread->quit();
-//                msg.setText("Wykryto zamrożenie obrazu");
-//                sendFrame(3);
-//                on_stop_cap_button_clicked();       //zatrzymanie wszytkich wątków
-//                msg.exec();
-//            }
-//        }
-//    }
 }
 
 /**
@@ -435,8 +379,6 @@ void MainWindow::checkVideoStream(ErrorEnums err){
         }
 
         msg.exec();
-//        openCvThread.quit();
-//        openCvThread.wait();
         on_stop_cap_button_clicked();
     }
 
@@ -446,19 +388,11 @@ void MainWindow::checkPing(ErrorEnums err)
 {
     if(err==ErrorEnums::CONNECTION_ERROR){
         connectionError = ErrorEnums::CONNECTION_ERROR;
-        msg.setText("Połączenie zostało zerwane");
         msg.exec();
-        qDebug()<<"quit()";
         pingThread.quit();
-        qDebug()<<"wait()";
         pingThread.wait();
-        qDebug()<<"po wait()";
         on_stop_cap_button_clicked();
     }
-}
-
-void MainWindow::checkFreezeThread(QString string){
-    qDebug()<<string;
 }
 
 void MainWindow::getVideoFrame(Mat frame)
@@ -475,14 +409,14 @@ void MainWindow::checkCapStopped()
     ui->videoLabel->setScaledContents(true);
 }
 
-void MainWindow::credentialsCheck(ErrorEnums err)
-{
-    connectionError = err;
-    if(err==ErrorEnums::CREDENTIALS_ERROR)
-    {
-        qDebug()<<"Błąd poświadczeń";
-    }
-}
+// void MainWindow::credentialsCheck(ErrorEnums err)
+// {
+//     connectionError = err;
+//     if(err==ErrorEnums::CREDENTIALS_ERROR)
+//     {
+// //        qDebug()<<"Błąd poświadczeń";
+//     }
+// }
 
 void MainWindow::getPingParams(double lathency, double jitter)
 {
@@ -506,11 +440,11 @@ void MainWindow::waitForRequest(int socPort)
 
     if(!server->listen(QHostAddress::Any, socPort))
     {
-        qDebug()<<"Serwer nie został uruchomiony";
+//        qDebug()<<"Serwer nie został uruchomiony";
     }
     else
     {
-        qDebug()<<"Serwer uruchomiony";
+//        qDebug()<<"Serwer uruchomiony";
     }
 }
 
@@ -526,7 +460,8 @@ void MainWindow::newConnection()
             "\nKodek: "+codecVal+
             "\nPing: "+lathencyVal+
             "\nJitter: "+jitterVal+
-            "\nRóżnica ramek: "+diffVal+"\n"
+            "\nRóżnica ramek: "+diffVal+"\n"+
+            "\nIlość błędów kodeka: "+codecError+"\n"
             ;
     QTcpSocket *socket = server->nextPendingConnection();
 
@@ -543,4 +478,34 @@ void MainWindow::getDiffLevel(QString diff)
 {
     ui->diffLabel->setText(diff);
     diffVal = diff;
+}
+
+void MainWindow::redirectStdErr()
+{
+    FILE *stream = freopen("stderr.out", "w", stderr); // Added missing pointer
+    setvbuf(stream, 0, _IONBF, 0); // No Buffering
+    FILE *input = fopen("stderr.out", "r");
+    char buffer[1024];
+    while (fgets(buffer, 512, input))
+    {
+        printf(">>>%s\n", buffer);
+        codecError++;
+        ui->errCountLabel->setText(QString::number(codecError));
+    }
+}
+
+void MainWindow::checkConnectionQuality()
+{
+    cout << "Sprawdzam plik";
+    QFile inputFile("stderr.out");
+    if(inputFile.open(QIODevice::ReadOnly))
+    {
+        QTextStream input(&inputFile);
+        while(!input.atEnd())
+        {
+            QString line = input.readLine();
+            cout << "error";
+        }
+        inputFile.close();
+    }
 }

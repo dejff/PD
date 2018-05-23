@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include <QShortcut>
-#include <sys/socket.h>
 #include "pingworker.h"
 #include "videoworker.h"
 #include "opencvworker.h"
@@ -27,7 +26,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    const QString IMAGE_PATH = "./no_video.jpg";
+    const QString IMAGE_PATH = "no_video.jpg";
     explicit MainWindow(QWidget *parent = 0);
     void sendFrame(int code);
     void waitForRequest(int port);
@@ -36,21 +35,20 @@ public:
 private slots:
     void on_stop_cap_button_clicked();
     void on_start_cap_button_clicked();
-    void checkThreads();		//dostosować do poprawek w wątkach - może będzie potrzeba sprawdzania tylko jednej zmiennej
     void checkBoxClicked();
     void portCheckBoxClicked();
     void nameCheckBoxClicked();
     void streamPortChckxbClicked();
     void newConnection();
+    void checkConnectionQuality();
 
-public slots:
+  public slots:
     //SLOTY NASŁUCHUJĄCE INFORMACJI ZWROTNEJ Z WĄTKÓW O TYM CZY WYSTĄPIŁ JAKIŚ BŁĄD
     void checkPing(ErrorEnums err);
     void checkVideoStream(ErrorEnums err);
-    void checkFreezeThread(QString string);
     void getVideoFrame(Mat frame);
     void checkCapStopped();
-    void credentialsCheck(ErrorEnums err);
+    // void credentialsCheck(ErrorEnums err);
     void getPingParams(double lathency, double jitter);
     void getVideoInfo(int width, int height, QString codec);
     void getDiffLevel(QString diff);
@@ -73,8 +71,10 @@ private:
     VideoWorker *videoWorker;
     QTimer *timer, *pingTimer, *openCvTimer, *videoTimer, *socketTimer;
     QThread pingThread, openCvThread, videoThread, socketThread, freezeThread;
+    void redirectStdErr();
+    int codecError;
 
-signals:
+  signals:
     //SYGNAŁY PRZESYŁAJĄCE SYGNAŁY DO WĄTKÓW PODCZAS INICJALIZACJI
     void capturePing(const QString &);
     void playStream(const QString &);

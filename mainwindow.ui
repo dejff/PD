@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>864</width>
-    <height>596</height>
+    <height>649</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>10</y>
       <width>831</width>
-      <height>511</height>
+      <height>565</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout">
@@ -59,8 +59,8 @@
        </item>
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="8" column="1">
-          <widget class="QLabel" name="diffLabel">
+         <item row="9" column="1">
+          <widget class="QLabel" name="errCountLabel">
            <property name="styleSheet">
             <string notr="true">border: 1px solid</string>
            </property>
@@ -96,6 +96,9 @@
          <item row="3" column="1">
           <widget class="QLineEdit" name="ip_addr"/>
          </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="nameField"/>
+         </item>
          <item row="4" column="1">
           <widget class="QLabel" name="lathency_label">
            <property name="styleSheet">
@@ -112,9 +115,6 @@
             <string>Rozdzielczość</string>
            </property>
           </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="nameField"/>
          </item>
          <item row="6" column="1">
           <widget class="QLabel" name="resolutionLabel">
@@ -161,6 +161,13 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="streamPortChckbx">
+           <property name="text">
+            <string>Port</string>
+           </property>
+          </widget>
+         </item>
          <item row="8" column="0">
           <widget class="QLabel" name="label_12">
            <property name="cursor">
@@ -174,10 +181,46 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="streamPortChckbx">
+         <item row="9" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="cursor">
+            <cursorShape>ArrowCursor</cursorShape>
+           </property>
            <property name="text">
-            <string>Port</string>
+            <string>Ilość błędów kodeka</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QLabel" name="diffLabel">
+           <property name="styleSheet">
+            <string notr="true">border: 1px solid</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1">
+          <widget class="QLabel" name="qualityLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="cursor">
+            <cursorShape>ArrowCursor</cursorShape>
+           </property>
+           <property name="text">
+            <string>Jakość połączenia</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -287,10 +330,13 @@
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Expanding</enum>
+           </property>
            <property name="sizeHint" stdset="0">
             <size>
              <width>40</width>
-             <height>20</height>
+             <height>10</height>
             </size>
            </property>
           </spacer>
@@ -317,7 +363,7 @@
      <x>0</x>
      <y>0</y>
      <width>864</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
   </widget>
