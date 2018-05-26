@@ -21,8 +21,8 @@ void OpencvWorker::capture(const QString url)
 {
 
     counter = 0;
-    compareFrame1.release();
-    compareFrame2.release();
+    if(!compareFrame1.empty()) compareFrame1.release();
+    if(!compareFrame2.empty()) compareFrame2.release();
     cap.open(url.toUtf8().data());
     if(!cap.isOpened()){
         emit openCvReturnMsg(ErrorEnums::CONNECTION_ERROR);
@@ -55,7 +55,8 @@ void OpencvWorker::tick()
             }
             else
             {
-                compareFrame1.release();
+                std::cout << "w tick";
+                if(!compareFrame1.empty()) compareFrame1.release();
                 compareFrame2.copyTo(compareFrame1);            //skopiowanie ramki
                 compareFrame2.release();
                 frame.copyTo(compareFrame2);
@@ -84,14 +85,17 @@ void OpencvWorker::tick()
  */
 void OpencvWorker::stopCapture()
 {
+    compareFrame1.release();
+    compareFrame2.release();
     frameTimer->stop();
     cap.release();
     emit capStopped();
 }
 
-bool OpencvWorker::compareFrames(Mat frame1, Mat frame2)
+void OpencvWorker::compareFrames(Mat frame1, Mat frame2)
 {
-    QImage firstImage((const unsigned char*)(frame1.data), frame1.cols, frame1.rows, QImage::Format_RGB888);
+    std::cout << "compare frames";
+    QImage firstImage((const unsigned char *)(frame1.data), frame1.cols, frame1.rows, QImage::Format_RGB888);
     QImage secondImage((const unsigned char*)(frame2.data), frame2.cols, frame2.rows, QImage::Format_RGB888);
     double totaldiff = 0.0 ;
     double diffLevelVal = 0.0 ;
@@ -116,7 +120,6 @@ bool OpencvWorker::compareFrames(Mat frame1, Mat frame2)
             totaldiff += std::abs( bFirst -bSecond ) / 255.0 ;
         }
     }
-
     diffLevelVal = ((totaldiff * 100)  / (firstImage.width() * firstImage.height() * 3));
 
     if(diffLevelVal<DIFF_LEVEL)
@@ -126,5 +129,4 @@ bool OpencvWorker::compareFrames(Mat frame1, Mat frame2)
     }
 
     emit diffLevel(QString::number(diffLevelVal));
-
 }

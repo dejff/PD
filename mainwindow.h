@@ -13,6 +13,7 @@
 #include <cmath>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QMutex>
 
 #define DEFAULT_PORT 50000
 

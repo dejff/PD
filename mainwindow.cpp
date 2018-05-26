@@ -108,8 +108,11 @@ MainWindow::~MainWindow()
  */
 void MainWindow::on_start_cap_button_clicked()
 {
-//    ui->qualityLabel->setProperty("backbround-color", "");
-    ui->qualityLabel->setStyleSheet("QLabel {background-color: green}");
+    ui->jitterLabel->setText("");
+    ui->lathency_label->setText("");
+    ui->codec_label->setText("");
+    ui->resolutionLabel->setText("");
+    ui->diffLabel->setText("");
     connectionError = ErrorEnums::WAIT_FOR_PING;
     url = "";
     if(ui->ip_addr->text().isEmpty() || ui->ip_addr->text().length()<=4){       //sprawdzamy czy użtykownik cokolwiek wpisał
@@ -213,33 +216,14 @@ void MainWindow::on_start_cap_button_clicked()
                 capturePing(ui->ip_addr->text());
                 pingThread.start();
                 playStream(url);
-                // openCvThread.start();
-                // codecError = 0;
-                // MainWindow::redirectStdErr();
+                openCvThread.start();
                 ui->errCountLabel->setText(QString::number(codecError));
-                FILE *stream = freopen("stderr.out", "w", stderr);
-                cout<<"setvbuf"<<setvbuf(stream, 0, _IOLBF, 0)<<endl;
+                mutex.lock();
+                FILE *stream = freopen("errlog.txt", "w", stderr);
                 setvbuf(stream, 0, _IOLBF, 0);//buforuje aż wykryje znak końaca linii
-                // if(fopen("stderr.out", "r")!=NULL)
-                // {
-                //     cout << "coś się dzieje";
-                // }
-                FILE *input = fopen("stderr.out", "r");
-
-                char buffer[1024];
-                // if(fgets(buffer, 512, input))
-                // {
-                //     cout << "coś się dzieje";
-                // }
-                while (fgets(buffer, 512, input))
-                {
-                    qDebug() << "test";
-                    cout << "coś się dzieje";
-                    codecError++;
-                    ui->errCountLabel->setText(QString::number(codecError));
-                    printf(">>>%s\n", buffer);
-                }
-
+                FILE *input = fopen("errlog.txt", "r");
+                mutex.unlock();
+             
                 if(!ui->listenPort->text().trimmed().isEmpty() && ui->portCheckBox->isChecked())   //sprawdzenie czy checkbox portu został zaznaczony i czy pole zostało wypełnione
                 {
                     waitForRequest(ui->listenPort->text().toInt());
@@ -251,8 +235,8 @@ void MainWindow::on_start_cap_button_clicked()
                 
                 ui->status_label->setText("Program działa");
 
-                //uruchomienie funkcji zliczającej ilość błędów kodeka - możliwe, że do usunięcia
-               timer->start(20);
+                //uruchomienie funkcji zliczającej ilość błędów kodeka
+               timer->start(100);
             }
             
         }
@@ -266,7 +250,9 @@ void MainWindow::on_start_cap_button_clicked()
  */
 void MainWindow::on_stop_cap_button_clicked()
 {
-    ui->qualityLabel->setStyleSheet("QLabel {background-color: red}");
+    diffVal = "0";
+    ui->qualityLabel->setStyleSheet("QLabel {background-color: none}");
+    ui->qualityLabel->setText("");
     if(server->isListening()){
         server->close();
     }
@@ -277,40 +263,50 @@ void MainWindow::on_stop_cap_button_clicked()
     ui->start_cap_button->setEnabled(true);
 
     //zakończenie wątka pingującego urządzenie
-    if(pingThread.isRunning()){
+    if(pingThread.isRunning())
+    {
         pingThread.quit();
         pingThread.wait();
 
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki openCV
-    if(openCvThread.isRunning()){
+    if(openCvThread.isRunning())
+    {
         openCvThread.quit();
         openCvThread.wait();
     }
 
     //zakończenie wątka przetwarzającego strumień wideo z wykorzystaniem biblioteki libvlc
-    if(videoThread.isRunning()){
+    if(videoThread.isRunning())
+    {
         videoThread.quit();
         videoThread.wait();
     }
 
-    if(ui->nameCheckBox->isChecked()){
+    if(ui->streamPortChckbx->isChecked())
+    {
+        ui->portField->setDisabled(false);
+    }
+
+    if(ui->nameCheckBox->isChecked())
+    {
         ui->nameField->setDisabled(false);
     }
 
-    if(ui->checkBox->isChecked()){
+    if(ui->checkBox->isChecked())
+    {
         ui->passwordField->setDisabled(false);
         ui->loginField->setDisabled(false);
     }
 
-    if(ui->portCheckBox->isChecked()){
-        ui->portField->setDisabled(false);
+    if(ui->portCheckBox->isChecked())
+    {
+        ui->listenPort->setDisabled(false);
     }
 
     ui->protocolType->setDisabled(false);
     ui->ip_addr->setDisabled(false);
-    ui->portField->setDisabled(false);
     ui->nameCheckBox->setDisabled(false);
     ui->portCheckBox->setDisabled(false);
     ui->checkBox->setDisabled(false);
@@ -388,6 +384,7 @@ void MainWindow::checkPing(ErrorEnums err)
 {
     if(err==ErrorEnums::CONNECTION_ERROR){
         connectionError = ErrorEnums::CONNECTION_ERROR;
+        msg.setText("Błąd połączenia - połączenie zostało zerwane");
         msg.exec();
         pingThread.quit();
         pingThread.wait();
@@ -409,15 +406,6 @@ void MainWindow::checkCapStopped()
     ui->videoLabel->setScaledContents(true);
 }
 
-// void MainWindow::credentialsCheck(ErrorEnums err)
-// {
-//     connectionError = err;
-//     if(err==ErrorEnums::CREDENTIALS_ERROR)
-//     {
-// //        qDebug()<<"Błąd poświadczeń";
-//     }
-// }
-
 void MainWindow::getPingParams(double lathency, double jitter)
 {
     !isnan(jitter) ? jitter : jitter=0.0;
@@ -425,6 +413,24 @@ void MainWindow::getPingParams(double lathency, double jitter)
     ui->lathency_label->setText(QString::number(lathency));
     lathencyVal = QString::number(lathency);
     jitterVal = QString::number(jitter);
+    if (jitter <= 20 && lathency <= 150)
+    {
+        //dobra jakość połączenia
+        ui->qualityLabel->setStyleSheet("QLabel {background-color: green}");
+        ui->qualityLabel->setText("Dobra");
+    }
+    else if(jitter<=50 && lathency<=300)
+    {
+        //średnia jakość połączenia
+        ui->qualityLabel->setStyleSheet("QLabel {background-color: yellow}");
+        ui->qualityLabel->setText("Średnia");
+    }
+    else
+    {
+        //zła jakość połączenia
+        ui->qualityLabel->setStyleSheet("QLabel {background-color: red}");
+        ui->qualityLabel->setText("Zła");
+    }
 }
 
 void MainWindow::getVideoInfo(int width, int height, QString codec)
@@ -440,11 +446,7 @@ void MainWindow::waitForRequest(int socPort)
 
     if(!server->listen(QHostAddress::Any, socPort))
     {
-//        qDebug()<<"Serwer nie został uruchomiony";
-    }
-    else
-    {
-//        qDebug()<<"Serwer uruchomiony";
+        cout<<"Serwer nie został uruchomiony"<<endl;
     }
 }
 
@@ -460,8 +462,10 @@ void MainWindow::newConnection()
             "\nKodek: "+codecVal+
             "\nPing: "+lathencyVal+
             "\nJitter: "+jitterVal+
-            "\nRóżnica ramek: "+diffVal+"\n"+
-            "\nIlość błędów kodeka: "+codecError+"\n"
+            "\nRóżnica ramek: "+diffVal+
+            "\nIlość błędów kodeka: "+QString::number(codecError)
+            // +
+            // "\n"
             ;
     QTcpSocket *socket = server->nextPendingConnection();
 
@@ -480,32 +484,37 @@ void MainWindow::getDiffLevel(QString diff)
     diffVal = diff;
 }
 
-void MainWindow::redirectStdErr()
-{
-    FILE *stream = freopen("stderr.out", "w", stderr); // Added missing pointer
-    setvbuf(stream, 0, _IONBF, 0); // No Buffering
-    FILE *input = fopen("stderr.out", "r");
-    char buffer[1024];
-    while (fgets(buffer, 512, input))
-    {
-        printf(">>>%s\n", buffer);
-        codecError++;
-        ui->errCountLabel->setText(QString::number(codecError));
-    }
-}
+// void MainWindow::redirectStdErr()
+// {
+//     mutex.lock();
+//     FILE *stream = freopen("errlog.txt", "w", stderr);
+//     setvbuf(stream, 0, _IOLBF, 0); // No Buffering
+//     FILE *input = fopen("errlog.txt", "r");
+//     char buffer[1024];
+//     while (fgets(buffer, 512, input))
+//     {
+//         printf(">>>%s\n", buffer);
+//         // codecError++;
+//         // ui->errCountLabel->setText(QString::number(codecError));
+//     }
+//     mutex.unlock();
+// }
 
 void MainWindow::checkConnectionQuality()
 {
-    cout << "Sprawdzam plik";
-    QFile inputFile("stderr.out");
+    codecError = 0;
+    mutex.lock();
+    QFile inputFile("errlog.txt");
     if(inputFile.open(QIODevice::ReadOnly))
     {
         QTextStream input(&inputFile);
         while(!input.atEnd())
         {
             QString line = input.readLine();
-            cout << "error";
+            codecError++;
         }
         inputFile.close();
     }
+    mutex.unlock();
+    ui->errCountLabel->setText(QString::number(codecError));
 }

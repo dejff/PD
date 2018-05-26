@@ -29,7 +29,7 @@ private:
     QString url;
     VideoCapture cap;
     Mat frame, compareFrame1, compareFrame2;
-    bool compareFrames(Mat frame1, Mat frame2);
+    void compareFrames(Mat frame1, Mat frame2);
 public slots:
     void capture(const QString url);
     void stopCapture();
