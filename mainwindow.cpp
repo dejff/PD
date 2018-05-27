@@ -502,6 +502,7 @@ void MainWindow::getDiffLevel(QString diff)
 
 void MainWindow::checkConnectionQuality()
 {
+//    QString tmpCodec = codecVal;
     codecError = 0;
     mutex.lock();
     QFile inputFile("errlog.txt");
@@ -510,8 +511,12 @@ void MainWindow::checkConnectionQuality()
         QTextStream input(&inputFile);
         while(!input.atEnd())
         {
-            QString line = input.readLine();
-            codecError++;
+             QString line = input.readLine();
+            // if(line.contains("dupa"))
+            if(line.contains(codecVal, Qt::CaseInsensitive))
+            {
+                codecError++;
+            }
         }
         inputFile.close();
     }

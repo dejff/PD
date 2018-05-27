@@ -34,6 +34,7 @@ void OpencvWorker::capture(const QString url)
 
 void OpencvWorker::tick()
 {
+    std::cout << "tick" << std::endl;
     cap.read(frame);//odczytujemy ramkę wideo ze strumienia
     if(!frame.empty()){ //jeśli ramka jest pusta to jej nie wysyłamy -
                         //w przypadku, kiedy zostanie zerwane połączenie i nie ma się wyświetlać puste okienko,
@@ -47,8 +48,9 @@ void OpencvWorker::tick()
     }
     else
     {
-        if(counter==100)
+        if (counter == 100)
         {
+            std::cout << "counter 100" << std::endl;
             if(compareFrame2.empty())
             {
                 frame.copyTo(compareFrame2);
