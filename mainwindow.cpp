@@ -257,8 +257,6 @@ void MainWindow::on_stop_cap_button_clicked()
         server->close();
     }
 
-    ui->status_label->setText("Zatrzymano");
-
     ui->stop_cap_button->setEnabled(false);
     ui->start_cap_button->setEnabled(true);
 
@@ -305,6 +303,7 @@ void MainWindow::on_stop_cap_button_clicked()
         ui->listenPort->setDisabled(false);
     }
 
+    ui->status_label->setText("Zatrzymano");
     ui->protocolType->setDisabled(false);
     ui->ip_addr->setDisabled(false);
     ui->nameCheckBox->setDisabled(false);
