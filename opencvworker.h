@@ -3,10 +3,12 @@
 #include <QThread>
 #include <QTimer>
 #include <opencv2/opencv.hpp>
-#include "ui_mainwindow.h"
+//#include "ui_mainwindow.h"
 #include <QErrorMessage>
 #include <QMutex>
 #include "errorenums.h"
+#include <math.h>   //do wywalenia jak zadziała qFabs
+#include <QtMath>
 
 #define DIFF_LEVEL 0.01
 
@@ -25,7 +27,7 @@ private:
     bool isStopPushed;
     QTimer *frameTimer;
     QImage img;
-    Ui::MainWindow *ui;
+//    Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;
     Mat frame, compareFrame1, compareFrame2;

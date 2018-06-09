@@ -2,7 +2,7 @@
 #define PINGTHREAD_H
 #include <QThread>
 #include <QTimer>
-#include <pcap.h>
+//#include <pcap.h>
 #include <netinet/ip_icmp.h>
 #include <oping.h>
 #include <iostream>

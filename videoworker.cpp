@@ -1,4 +1,4 @@
-#include <qt5/QtCore/qlogging.h>
+//#include <qt5/QtCore/qlogging.h>
 #include "videoworker.h"
 
 VideoWorker::VideoWorker()
@@ -160,7 +160,7 @@ avformat_network_deinit();
                     codecContext->pix_fmt,
                     codecContext->width,
                     codecContext->height,
-                    PIX_FMT_RGB24,
+                    AV_PIX_FMT_RGB24,
                     SWS_BILINEAR,
                     NULL,
                     NULL,
