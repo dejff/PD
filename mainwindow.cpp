@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->nameCheckBox->setChecked(false);
     ui->streamPortChckbx->setChecked(false);
     ui->portField->setDisabled(true);
+    ui->portField->setValidator(portValidator);
+
 
     //konfiguracja skrótów klawiaturowych Ctrl+r dla uruchomienia przechwytywanie oraz Ctrl+s dla zatrzymania
     startShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this); //ustawienie skrótu na rozpoczęcie skanowania
@@ -441,6 +443,11 @@ void MainWindow::getVideoInfo(int width, int height, QString codec)
     codecVal = codec;
 }
 
+/**
+ * @brief MainWindow::waitForRequest
+ * Metoda ustawiająca serwer w stan nasłuchiwania
+ * @param socPort - port jaki ma nasłuchiwać serwer Tcp
+ */
 void MainWindow::waitForRequest(int socPort)
 {
 
@@ -450,7 +457,10 @@ void MainWindow::waitForRequest(int socPort)
     }
 }
 
-
+/**
+ * @brief MainWindow::newConnection
+ * Metoda konfigurująca parametry nasłuchiwania serwera
+ */
 void MainWindow::newConnection()
 {
 
