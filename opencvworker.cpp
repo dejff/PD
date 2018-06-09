@@ -29,12 +29,12 @@ void OpencvWorker::capture(const QString url)
     }
 
     connect(frameTimer, SIGNAL(timeout()), this, SLOT(tick()), Qt::DirectConnection);
-    frameTimer->start(30);
+    frameTimer->start(40);
 }
 
 void OpencvWorker::tick()
 {
-    std::cout << "tick" << std::endl;
+//    std::cout << "tick" << std::endl;
     cap.read(frame);//odczytujemy ramkę wideo ze strumienia
     if(!frame.empty()){ //jeśli ramka jest pusta to jej nie wysyłamy -
                         //w przypadku, kiedy zostanie zerwane połączenie i nie ma się wyświetlać puste okienko,
@@ -57,7 +57,7 @@ void OpencvWorker::tick()
             }
             else
             {
-                std::cout << "w tick";
+//                std::cout << "w tick";
                 if(!compareFrame1.empty()) compareFrame1.release();
                 compareFrame2.copyTo(compareFrame1);            //skopiowanie ramki
                 compareFrame2.release();
@@ -68,7 +68,7 @@ void OpencvWorker::tick()
                 }
                 else
                 {
-                    //Ramki mają różne wymiary - nie mogą być takie same -> BŁĄD
+//                    //Ramki mają różne wymiary - nie mogą być takie same -> BŁĄD
                     frameTimer->stop();
                     emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
                 }
@@ -117,11 +117,17 @@ void OpencvWorker::compareFrames(Mat frame1, Mat frame2)
             int rSecond = qRed( pixelSecond ) ;
             int gSecond = qGreen( pixelSecond ) ;
             int bSecond = qBlue( pixelSecond ) ;
-            totaldiff += std::abs( rFirst - rSecond ) / 255.0 ;
-            totaldiff += std::abs( gFirst - gSecond ) / 255.0 ;
-            totaldiff += std::abs( bFirst -bSecond ) / 255.0 ;
+            int rDiff = rFirst - rSecond;
+            int gDiff = gFirst - gSecond;
+            int bDiff = bFirst - bSecond;
+            if(rDiff<0) rDiff*=(-1);
+            totaldiff += rDiff / 255.0;
+            totaldiff += qFabs( rFirst - rSecond ) / 255.0 ;
+            totaldiff += qFabs( gFirst - gSecond ) / 255.0 ;
+            totaldiff += qFabs( bFirst - bSecond ) / 255.0 ;
         }
     }
+    std::cout<<totaldiff<<std::endl;
     diffLevelVal = ((totaldiff * 100)  / (firstImage.width() * firstImage.height() * 3));
 
     if(diffLevelVal<DIFF_LEVEL)

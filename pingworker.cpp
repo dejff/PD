@@ -1,5 +1,5 @@
 #include "pingworker.h"
-#include <qt5/QtCore/qobjectdefs.h>
+//#include <qt5/QtCore/qobjectdefs.h>
 
 PingWorker::PingWorker(){
 
@@ -31,7 +31,7 @@ void PingWorker::sniff(const QString ip)
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(doPing()), Qt::DirectConnection);
-    timer->start(3000);     //ping co 1 sekundę
+    timer->start(3000);     //ping co 3 sekundy, musi tak by
 
 }
 
@@ -71,18 +71,22 @@ void PingWorker::doPing()
         len = 100;
         ping_iterator_get_info(iter, PING_INFO_LATENCY, &latency, &len);
 
+        //jeśli tablica z opóźnieniami jest pełna najpierw usuń ostatni element
         if(latencies.size()==NO_OF_SAMPLES)
         {
             latencies.pop_back();
         }
 
+        //utworzenie obiektu iteratora dla tablicy latencies
         latIter = latencies.begin();
         latencies.insert(latIter, latency);
 
+        //jeśli mamy co najmniej dwa elementy w tablicy latencies to można obliczyć jitter
         if(latencies.size()>=2)
         {
             diff=latencies[0]-latencies[1];
 
+            //jeśli tablica z wartościami jittera jest pełna najpierw usuń ostatni element
             if(jitters.size()==NO_OF_SAMPLES)
             {
                 jitters.pop_back();
