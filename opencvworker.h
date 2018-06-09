@@ -27,6 +27,7 @@ private:
     bool isStopPushed;
     QTimer *frameTimer;
     QImage img;
+	CompareWorker compareWorker;
 //    Ui::MainWindow *ui;
     QString url;
     VideoCapture cap;

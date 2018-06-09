@@ -5,6 +5,11 @@ CompareWorker::CompareWorker()
 
 }
 
+CompareWorker::~CompareWorker()
+{
+
+}
+
 void CompareWorker::compareFrames(Mat frame1, Mat frame2)
 {
     std::cout << "compare frames";
@@ -38,7 +43,7 @@ void CompareWorker::compareFrames(Mat frame1, Mat frame2)
             totaldiff += qFabs( bFirst - bSecond ) / 255.0 ;
         }
     }
-    std::cout<<totaldiff<<std::endl;
+//    std::cout<<totaldiff<<std::endl;
     diffLevelVal = ((totaldiff * 100)  / (firstImage.width() * firstImage.height() * 3));
 
 //    if(diffLevelVal<DIFF_LEVEL)
@@ -47,5 +52,6 @@ void CompareWorker::compareFrames(Mat frame1, Mat frame2)
 //        emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
 //    }
 
-    emit diffLevel(QString::number(diffLevelVal));
+    emit returnDiffVal(QString::number(diffLevelVal));
 }
+
