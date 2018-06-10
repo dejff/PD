@@ -7,8 +7,9 @@
 #include <QErrorMessage>
 #include <QMutex>
 #include "errorenums.h"
-#include <math.h>   //do wywalenia jak zadziała qFabs
-#include <QtMath>
+#include "compareworker.h"
+//#include <math.h>   //do wywalenia jak zadziała qFabs
+//#include <QtMath>
 
 #define DIFF_LEVEL 0.01
 
