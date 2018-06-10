@@ -5,10 +5,10 @@
 #include <opencv2/opencv.hpp>
 //#include "ui_mainwindow.h"
 #include <QErrorMessage>
-#include <QMutex>
+//#include <QMutex>
 #include "errorenums.h"
-#include <math.h>   //do wywalenia jak zadziała qFabs
-#include <QtMath>
+#include "compareworker.h"
+
 
 #define DIFF_LEVEL 0.01
 
@@ -23,7 +23,7 @@ public:
     ~OpencvWorker();
 private:
     int counter;
-    QMutex mutex;
+//    QMutex mutex;
     bool isStopPushed;
     QTimer *frameTimer;
     QImage img;
