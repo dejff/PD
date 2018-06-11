@@ -17,6 +17,7 @@
 
 #define DEFAULT_PORT 50000
 
+using namespace std;
 using namespace cv;
 namespace Ui {
 class MainWindow;
@@ -49,7 +50,6 @@ private slots:
     void checkVideoStream(ErrorEnums err);
     void getVideoFrame(Mat frame);
     void checkCapStopped();
-    // void credentialsCheck(ErrorEnums err);
     void getPingParams(double lathency, double jitter);
     void getVideoInfo(int width, int height, QString codec);
     void getDiffLevel(QString diff);

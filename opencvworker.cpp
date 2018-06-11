@@ -4,8 +4,13 @@ using namespace cv;
 
 OpencvWorker::OpencvWorker()
 {
+    compareWorker = new CompareWorker();
+    compareWorker->moveToThread(&compareThread);
     isStopPushed=false;
     frameTimer = new QTimer(this);
+    qRegisterMetaType<Mat>("Mat");
+    connect(this, SIGNAL(compareThisFrames(Mat,Mat)), compareWorker, SLOT(compareFrames(Mat, Mat)));
+    connect(compareWorker, SIGNAL(returnDiffVal(double)), this, SLOT(gotDiffVal(double)));
 }
 
 OpencvWorker::~OpencvWorker()
@@ -34,8 +39,7 @@ void OpencvWorker::capture(const QString url)
 
 void OpencvWorker::tick()
 {
-//    std::cout << "tick" << std::endl;
-    cap.read(frame);//odczytujemy ramkę wideo ze strumienia
+    cap.read(frame);//odczyt ramkę wideo ze strumienia
     if(!frame.empty()){ //jeśli ramka jest pusta to jej nie wysyłamy -
                         //w przypadku, kiedy zostanie zerwane połączenie i nie ma się wyświetlać puste okienko,
                         //bo program będzie działał jeszcze przez około 7 sekund
@@ -50,27 +54,28 @@ void OpencvWorker::tick()
     {
         if (counter == 100)
         {
-            std::cout << "counter 100" << std::endl;
             if(compareFrame2.empty())
             {
                 frame.copyTo(compareFrame2);
             }
             else
             {
-//                std::cout << "w tick";
                 if(!compareFrame1.empty()) compareFrame1.release();
                 compareFrame2.copyTo(compareFrame1);            //skopiowanie ramki
                 compareFrame2.release();
                 frame.copyTo(compareFrame2);
                 if(compareFrame1.rows==compareFrame2.rows && compareFrame1.cols==compareFrame2.cols)      //jeśli obie ramki mają tyle samo weirszy i kolumn
                 {
-                    compareFrames(compareFrame1, compareFrame2);
+                    //tutaj uruchamia się wątek CompareWorker
+                    compareThisFrames(compareFrame1, compareFrame2);
+                    compareThread.start();
+//                    compareFrames(compareFrame1, compareFrame2);
                 }
                 else
                 {
 //                    //Ramki mają różne wymiary - nie mogą być takie same -> BŁĄD
                     frameTimer->stop();
-                    emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
+//                    emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
                 }
 
             }
@@ -90,51 +95,20 @@ void OpencvWorker::stopCapture()
     compareFrame1.release();
     compareFrame2.release();
     frameTimer->stop();
+    compareThread.quit();
+    compareThread.wait();
     cap.release();
     emit capStopped();
 }
 
-void OpencvWorker::compareFrames(Mat frame1, Mat frame2)
+void OpencvWorker::gotDiffVal(const double diffVal)
 {
-    std::cout << "compare frames";
-    QImage firstImage((const unsigned char *)(frame1.data), frame1.cols, frame1.rows, QImage::Format_RGB888);
-    QImage secondImage((const unsigned char*)(frame2.data), frame2.cols, frame2.rows, QImage::Format_RGB888);
-    double totaldiff = 0.0 ;
-    double diffLevelVal = 0.0 ;
-    for ( int y = 0 ; y < firstImage.height() ; y++ ) {
-        //odczytywanie linii obrazków
-        uint *firstLine = ( uint* )firstImage.scanLine( y ) ;
-        uint *secondLine = ( uint* )secondImage.scanLine( y ) ;
-        for ( int x = 0 ; x < firstImage.width() ; x++ ) {
-            uint pixelFirst = firstLine[ x ] ;
-            int rFirst = qRed( pixelFirst ) ;
-            int gFirst = qGreen( pixelFirst ) ;
-            int bFirst = qBlue( pixelFirst ) ;
-
-            //pobieranie wartości pikseli drugiego obrazka
-            uint pixelSecond = secondLine[ x ] ;
-            //pobieranie wartości składowych RGB piksela
-            int rSecond = qRed( pixelSecond ) ;
-            int gSecond = qGreen( pixelSecond ) ;
-            int bSecond = qBlue( pixelSecond ) ;
-            int rDiff = rFirst - rSecond;
-            int gDiff = gFirst - gSecond;
-            int bDiff = bFirst - bSecond;
-            if(rDiff<0) rDiff*=(-1);
-            totaldiff += rDiff / 255.0;
-            totaldiff += qFabs( rFirst - rSecond ) / 255.0 ;
-            totaldiff += qFabs( gFirst - gSecond ) / 255.0 ;
-            totaldiff += qFabs( bFirst - bSecond ) / 255.0 ;
-        }
-    }
-    std::cout<<totaldiff<<std::endl;
-    diffLevelVal = ((totaldiff * 100)  / (firstImage.width() * firstImage.height() * 3));
-
-    if(diffLevelVal<DIFF_LEVEL)
+    if(diffVal<DIFF_LEVEL)
     {
-        frameTimer->stop();
         emit openCvReturnMsg(ErrorEnums::FREEZE_ERROR);
+        frameTimer->stop();
+        compareThread.quit();
+        compareThread.wait();
     }
-
-    emit diffLevel(QString::number(diffLevelVal));
+    emit diffLevel(QString::number(diffVal));
 }

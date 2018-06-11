@@ -20,7 +20,7 @@ private:
     int diffValue;
 
 signals:
-    void returnDiffVal(const QString diffval);
+    void returnDiffVal(const double diffval);
 
 public slots:
     void compareFrames(Mat frame1, Mat frame2);

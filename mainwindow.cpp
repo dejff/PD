@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->nameCheckBox->setChecked(false);
     ui->streamPortChckbx->setChecked(false);
     ui->portField->setDisabled(true);
+    ui->portField->setValidator(portValidator);
+
 
     //konfiguracja skrótów klawiaturowych Ctrl+r dla uruchomienia przechwytywanie oraz Ctrl+s dla zatrzymania
     startShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_R), this); //ustawienie skrótu na rozpoczęcie skanowania
@@ -186,6 +188,7 @@ void MainWindow::on_start_cap_button_clicked()
 
         if(ui->protocolType->currentText()=="FREEZE TEST")
         {
+            std::cout<<"wybrano freeze test";
             url = "./lena.avi";
         }
 
@@ -200,7 +203,9 @@ void MainWindow::on_start_cap_button_clicked()
         }
         else
         {
-            credentialError = VideoWorker::checkCredentials(url);
+            if(ui->protocolType->currentText()!="FREEZE TEST"){
+                credentialError = VideoWorker::checkCredentials(url);
+            }
             
             //Sprawdzenie czy wpisane hasło i login są poprawne
             if(credentialError==ErrorEnums::CREDENTIALS_ERROR)
@@ -440,6 +445,11 @@ void MainWindow::getVideoInfo(int width, int height, QString codec)
     codecVal = codec;
 }
 
+/**
+ * @brief MainWindow::waitForRequest
+ * Metoda ustawiająca serwer w stan nasłuchiwania
+ * @param socPort - port jaki ma nasłuchiwać serwer Tcp
+ */
 void MainWindow::waitForRequest(int socPort)
 {
 
@@ -449,7 +459,10 @@ void MainWindow::waitForRequest(int socPort)
     }
 }
 
-
+/**
+ * @brief MainWindow::newConnection
+ * Metoda konfigurująca parametry nasłuchiwania serwera
+ */
 void MainWindow::newConnection()
 {
 
@@ -483,25 +496,8 @@ void MainWindow::getDiffLevel(QString diff)
     diffVal = diff;
 }
 
-// void MainWindow::redirectStdErr()
-// {
-//     mutex.lock();
-//     FILE *stream = freopen("errlog.txt", "w", stderr);
-//     setvbuf(stream, 0, _IOLBF, 0); // No Buffering
-//     FILE *input = fopen("errlog.txt", "r");
-//     char buffer[1024];
-//     while (fgets(buffer, 512, input))
-//     {
-//         printf(">>>%s\n", buffer);
-//         // codecError++;
-//         // ui->errCountLabel->setText(QString::number(codecError));
-//     }
-//     mutex.unlock();
-// }
-
 void MainWindow::checkConnectionQuality()
 {
-//    QString tmpCodec = codecVal;
     codecError = 0;
     mutex.lock();
     QFile inputFile("errlog.txt");
