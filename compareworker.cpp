@@ -20,9 +20,6 @@ void CompareWorker::compareFrames(Mat frame1, Mat frame2)
     double totaldiff = 0.0;
     double diffLevelVal = 0.0 ;
     if((frame1.rows == frame2.rows) && (frame1.cols == frame2.cols)){
-        firstImage.save("frame1.jpg");
-        secondImage.save("frame2.jpg");
-        std::cout<<"obie ramki mają taki sam wymiar: "<<frame1.cols<<"x"<<frame1.rows<<std::endl;
         for ( int y = 0 ; y < firstImage.height() ; y++ ) {
             //odczytywanie linii obrazków
             uint *firstLine = ( uint* )firstImage.scanLine( y ) ;

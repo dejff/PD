@@ -389,10 +389,10 @@ void MainWindow::checkPing(ErrorEnums err)
     if(err==ErrorEnums::CONNECTION_ERROR){
         connectionError = ErrorEnums::CONNECTION_ERROR;
         msg.setText("Błąd połączenia - połączenie zostało zerwane");
-        msg.exec();
         pingThread.quit();
         pingThread.wait();
         on_stop_cap_button_clicked();
+        msg.exec();
     }
 }
 

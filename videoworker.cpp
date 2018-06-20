@@ -1,4 +1,3 @@
-//#include <qt5/QtCore/qlogging.h>
 #include "videoworker.h"
 
 VideoWorker::VideoWorker()
@@ -18,7 +17,7 @@ void VideoWorker::grabFrameFn()
     int codecError = 0;
     
 
-    if(av_read_frame(formatContext, &packet)<0) qDebug()<<"Błąd odczytu ramki";
+//    if(av_read_frame(formatContext, &packet)<0)
 
     while(av_read_frame(formatContext, &packet)>=0)
     {

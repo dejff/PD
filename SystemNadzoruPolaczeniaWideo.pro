@@ -61,7 +61,6 @@ DEFINES += QT_NO_VERSION_TAGGING
 
 INCLUDEPATH += /usr/local/include/opencv
 LIBS += -L/usr/local/lib -loping \
-     -lvlc \
      -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lopencv_video -lopencv_videoio \
      -lavutil -lavformat -lavcodec -lz -lm -lswscale -std=c++11
 

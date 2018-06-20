@@ -1,9 +1,9 @@
 #ifndef VIDEOTHREAD_H
 #define VIDEOTHREAD_H
 #include <QThread>
-#include <vlc/libvlc.h>
-#include <vlc/vlc.h>
-#include <vlc/libvlc_media.h>
+//#include <vlc/libvlc.h>
+//#include <vlc/vlc.h>
+//#include <vlc/libvlc_media.h>b
 #include "ui_mainwindow.h"
 #include "libavutil/mathematics.h"
 #include <stdio.h>
