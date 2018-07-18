@@ -1,15 +1,10 @@
 #ifndef VIDEOTHREAD_H
 #define VIDEOTHREAD_H
 #include <QThread>
-//#include <vlc/libvlc.h>
-//#include <vlc/vlc.h>
-//#include <vlc/libvlc_media.h>b
 #include "ui_mainwindow.h"
-#include "libavutil/mathematics.h"
 #include <stdio.h>
 #include <iostream>
 #include "errorenums.h"
-#include <QDebug>
 #include <QTimer>
 
 using namespace std;

@@ -1,5 +1,4 @@
 #include "pingworker.h"
-//#include <qt5/QtCore/qobjectdefs.h>
 
 PingWorker::PingWorker(){
 
@@ -50,9 +49,11 @@ void PingWorker::stopPing()
 
 void PingWorker::doPing()
 {
+    std::cout<<"Ping"<<std::endl;
     double sumLathency = 0, avgLathency = 0, sumJitter = 0, avgJitter = 0;
     if(ping_send(ping)<0)
     {
+        std::cout<<"Zbyt długi ping"<<std::endl;
         emit pingReturnMessage(ErrorEnums::CONNECTION_ERROR);
     }
 
