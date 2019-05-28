@@ -5,3 +5,5 @@ Aplikacja wykrywa zamrożenie obrazu, czyli sytuację w której kamera odpowiada
 
 GUI utworzone z wykorzystaniem bibliotek QT.
 Do dekodowania i analizy strumienia wideo wykorzystano biblioteki OpenCV oraz ffmpeg.
+
+Aplikacja napisana z myślą o uruchomieniu na system linux.
